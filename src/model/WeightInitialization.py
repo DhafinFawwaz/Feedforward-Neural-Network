@@ -43,12 +43,12 @@ class WeightInitiatior:
         self.seed = seed
         
 
-    def zero_init(self, neurons_before: int, neurons: int, bias: bool) -> list[list[float]]:
+    def _zero_init(self, neurons_before: int, neurons: int, bias: bool) -> list[list[float]]:
         if (bias):
             return [0.0 for _ in range(neurons)]
         return [[0.0 for _ in range(neurons_before)] for _ in range(neurons)]
     
-    def uniform_init(self, neurons_before: int, neurons: int, lower_bound: float, upper_bound: float, bias: bool) -> list[list[float]]:
+    def _uniform_init(self, neurons_before: int, neurons: int, lower_bound: float, upper_bound: float, bias: bool) -> list[list[float]]:
         if lower_bound == None or upper_bound == None:
             raise ValueError("Lower Bound and Upper Bound must be specified")
         if lower_bound > upper_bound:
@@ -57,7 +57,7 @@ class WeightInitiatior:
             return [random.uniform(lower_bound, upper_bound) for _ in range(neurons)]
         return [[random.uniform(lower_bound, upper_bound) for _ in range(neurons_before)] for _ in range(neurons)]
     
-    def normal_init(self, neurons_before: int, neurons: int, mean: float, std: float, bias: bool, seed:int = None) -> list[list[float]]:
+    def _normal_init(self, neurons_before: int, neurons: int, mean: float, std: float, bias: bool, seed:int = None) -> list[list[float]]:
         if mean == None or std == None:
             raise ValueError("Mean and Standard Deviation must be specified")
         if seed is not None:
