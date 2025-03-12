@@ -1,2 +1,4 @@
 src/dataset/*
 venv
+src/model/__pycache__
+src/__pycache__
