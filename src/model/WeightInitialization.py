@@ -1,8 +1,8 @@
 """
 Cara penggunaan:
-initiator = WeightInitiatior(init_method=WeightInitMethod.NORMAL, neurons=2, layers=3, mean=24, std=2, seed=69)
-initiator = WeightInitiatior(init_method=WeightInitMethod.UNIFORM, neurons=2, layers=3, lower_bound=4, upper_bound=7)
-initiator = WeightInitiatior(init_method=WeightInitMethod.ZERO, neurons=2, layers=3)
+initiator = WeightInitiatior(init_method=WeightInitMethod.NORMAL, nodes=[2,3,1], mean=24, std=2, seed=69)
+initiator = WeightInitiatior(init_method=WeightInitMethod.UNIFORM, nodes=[2,3,1], lower_bound=4, upper_bound=7)
+initiator = WeightInitiatior(init_method=WeightInitMethod.ZERO, nodes=[2,3,1])
 weights = initiator.get_weights()
 bias = initiator.get_bias()
 grad_weight = initiator.get_gradient_weights()
