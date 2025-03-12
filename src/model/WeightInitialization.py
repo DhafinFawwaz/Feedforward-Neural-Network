@@ -75,13 +75,13 @@ class WeightInitiatior:
     def get_weights(self):
         for i in range(len(self.nodes)-1):
             if self.init_method == WeightInitMethod.ZERO:
-                weights = self.zero_init(neurons_before=self.nodes[i], neurons= self.nodes[i+1], bias=False)
+                weights = self._zero_init(neurons_before=self.nodes[i], neurons= self.nodes[i+1], bias=False)
                 self.layered_weights.append(weights)
             elif self.init_method == WeightInitMethod.UNIFORM:
-                weights = self.uniform_init(neurons_before=self.nodes[i], neurons=self.nodes[i+1], lower_bound=self.lower_bound, upper_bound=self.upper_bound, bias=False)
+                weights = self._uniform_init(neurons_before=self.nodes[i], neurons=self.nodes[i+1], lower_bound=self.lower_bound, upper_bound=self.upper_bound, bias=False)
                 self.layered_weights.append(weights)
             elif self.init_method == WeightInitMethod.NORMAL:
-                weights = self.normal_init(neurons_before=self.nodes[i], neurons=self.nodes[i+1], mean=self.mean, std=self.std, seed=self.seed, bias=False)
+                weights = self._normal_init(neurons_before=self.nodes[i], neurons=self.nodes[i+1], mean=self.mean, std=self.std, seed=self.seed, bias=False)
                 self.layered_weights.append(weights)
             else:
                 raise ValueError("Invalid Weight Initialization Method")
@@ -90,13 +90,13 @@ class WeightInitiatior:
     def get_bias(self):
         for i in range(1,len(self.nodes)):
             if self.init_method == WeightInitMethod.ZERO:
-                weights = self.zero_init(neurons_before=self.nodes[i], neurons= self.nodes[i], bias=True)
+                weights = self._zero_init(neurons_before=self.nodes[i], neurons= self.nodes[i], bias=True)
                 self.bias.append(weights)
             elif self.init_method == WeightInitMethod.UNIFORM:
-                weights = self.uniform_init(neurons_before=self.nodes[i], neurons=self.nodes[i], lower_bound=self.lower_bound, upper_bound=self.upper_bound, bias=True)
+                weights = self._uniform_init(neurons_before=self.nodes[i], neurons=self.nodes[i], lower_bound=self.lower_bound, upper_bound=self.upper_bound, bias=True)
                 self.bias.append(weights)
             elif self.init_method == WeightInitMethod.NORMAL:
-                weights = self.normal_init(neurons_before=self.nodes[i], neurons=self.nodes[i], mean=self.mean, std=self.std, seed=self.seed, bias=True)
+                weights = self._normal_init(neurons_before=self.nodes[i], neurons=self.nodes[i], mean=self.mean, std=self.std, seed=self.seed, bias=True)
                 self.bias.append(weights)
             else:
                 raise ValueError("Invalid Weight Initialization Method")
