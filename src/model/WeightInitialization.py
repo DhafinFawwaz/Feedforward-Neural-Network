@@ -41,18 +41,18 @@ class WeightInitiator:
 
 
     def _zero_init(self, neurons_before: int, neurons: int):
-        return np.matrix([[0.0 for _ in range(neurons)] for _ in range(neurons_before)])
+        # return np.matrix([[0.0 for _ in range(neurons)] for _ in range(neurons_before)])
+        return np.array([[0.0 for _ in range(neurons)] for _ in range(neurons_before)])
 
-    def _zero_init_bias(self, neurons: int, bias: bool):
-        if bias:
-            return np.array([0.0 for _ in range(neurons)])
+    def _zero_init_bias(self, neurons: int):
+        return np.array([0.0 for _ in range(neurons)])
     
     def _uniform_init(self, neurons_before: int, neurons: int, lower_bound: float, upper_bound: float):
         if lower_bound is None or upper_bound is None:
             raise ValueError("Lower Bound and Upper Bound must be specified")
         if lower_bound > upper_bound:
             raise ValueError("Lower Bound must be less than Upper Bound")
-        return np.matrix([[random.uniform(lower_bound, upper_bound) for _ in range(neurons)] for _ in range(neurons_before)])
+        return np.array([[random.uniform(lower_bound, upper_bound) for _ in range(neurons)] for _ in range(neurons_before)])
 
     def _uniform_init_bias(self, lower_bound: float, upper_bound: float, neurons: int):
         return np.array([random.uniform(lower_bound, upper_bound) for _ in range(neurons)])
@@ -62,9 +62,9 @@ class WeightInitiator:
             raise ValueError("Mean and Standard Deviation must be specified")
         if seed is not None:
             random.seed(seed)
-            return np.matrix([[random.gauss(mean, std) for _ in range(neurons)] for _ in range(neurons_before)])
+            return np.array([[random.gauss(mean, std) for _ in range(neurons)] for _ in range(neurons_before)])
         else:
-            return np.matrix([[random.gauss(mean, std) for _ in range(neurons)] for _ in range(neurons_before)])
+            return np.array([[random.gauss(mean, std) for _ in range(neurons)] for _ in range(neurons_before)])
 
     def _normal_init_bias(self, neurons: int, mean: float, std: float, seed:int = None):
         if mean is None or std is None:
@@ -93,7 +93,7 @@ class WeightInitiator:
     def get_bias(self):
         for i in range(1,len(self.nodes)):
             if self.init_method == "zero":
-                weights = self._zero_init_bias(neurons=int(self.nodes[i]), bias=True)
+                weights = self._zero_init_bias(neurons=int(self.nodes[i]))
                 self.bias.append(weights)
             elif self.init_method == "uniform":
                 weights = self._uniform_init_bias(neurons=int(self.nodes[i]), lower_bound=self.lower_bound, upper_bound=self.upper_bound)
@@ -114,7 +114,7 @@ class WeightInitiator:
         return initiator.get_bias()
 
 if __name__ == "__main__":
-    init = WeightInitiator(init_method="zero", nodes=np.array([2, 1, 3]), lower_bound=4, upper_bound=7)
+    init = WeightInitiator(init_method="zero", nodes=np.array([2, 2, 2]), lower_bound=4, upper_bound=7)
     # init = WeightInitiator(init_method="uniform", nodes=np.array([2, 1, 3]), lower_bound=4, upper_bound=7)
     # init = WeightInitiator(init_method="normal", nodes=np.array([2, 1, 3]), mean=24, std=2, seed=69)
     weights = init.get_weights()
