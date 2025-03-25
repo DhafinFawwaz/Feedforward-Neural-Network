@@ -5,6 +5,7 @@ from lib.FFNNClassifier import FFNNClassifier
 from lib.Utils import load_mnist_dataset, train_test_split, calculate_accuracy, all_element_to_int, download_sample_dataset
 import argparse
 import time
+from lib.NeuralNetworkVisualizer import NeuralNetworkVisualizer
 
 parser = argparse.ArgumentParser()
 parser = argparse.ArgumentParser(description="FFNNClassifier")
@@ -45,6 +46,28 @@ group.add_argument(
     help='Get the accuracy of a prediction'
 )
 
+
+group.add_argument(
+    '-plot_network',
+    nargs=1, 
+    metavar=('MODEL_PATH'),
+    help='Plot the network'
+)
+group.add_argument(
+    '-plot_weights',
+    nargs=1, 
+    metavar=('MODEL_PATH'),
+    help='Plot the weight distribution'
+)
+group.add_argument(
+    '-plot_gradients',
+    nargs=1, 
+    metavar=('MODEL_PATH'),
+    help='Plot the gradient distribution'
+)
+parser.add_argument('--layers_to_plot', type=int, nargs='+', default=[0])
+parser.add_argument('--plot_type', type=str, default="hist")
+
 parser.add_argument('--test_size', type=float, default=0.1)
 parser.add_argument('--hidden_layer_sizes', type=int, nargs='+', default=[256, 128, 64])
 parser.add_argument('--activation_func', nargs='+', default=["sigmoid", "sigmoid", "sigmoid", "sigmoid"])
@@ -79,6 +102,19 @@ elif args.load:
 elif args.accuracy:
     prediction_path, actual_path = args.accuracy
     print(f"Accuracy:\n  Prediction={prediction_path}\n  Actual={actual_path}")
+elif args.plot_network:
+    model_path = args.plot_network[0]
+    print(f"Plotting network:\n  Model={model_path}")
+elif args.plot_weights:
+    model_path = args.plot_weights[0]
+    layers_to_plot = args.layers_to_plot
+    plot_type = args.plot_type
+    print(f"Plotting weights:\n  Model={model_path}\n  Layers={layers_to_plot}\n  Plot Type={plot_type}")
+elif args.plot_gradients:
+    model_path = args.plot_gradients[0]
+    layers_to_plot = args.layers_to_plot
+    plot_type = args.plot_type
+    print(f"Plotting gradients:\n  Model={model_path}\n  Layers={layers_to_plot}\n  Plot Type={plot_type}")
 
 if args.predict or args.save:
     print("\nTraning Parameters:")
@@ -146,6 +182,19 @@ def predict_or_save(args, X_path, y_path):
 
     return ffnn
 
+def get_visualizer(ffnn: FFNNClassifier):
+    layers = ffnn._get_hidden_layer_sizes()
+    weights = ffnn.weights_history
+    biases = ffnn.biases_history
+    weight_gradients = ffnn.weight_gradients_history
+    nnv = NeuralNetworkVisualizer(
+        layers=layers,
+        weights=weights,
+        gradients=weight_gradients,
+        biases=biases,
+    )
+    return nnv
+
 if args.predict:
     X_path, y_path, unlabeled_path, result_path = args.predict
     ffnn = predict_or_save(args, X_path, y_path)
@@ -195,3 +244,28 @@ if args.accuracy:
     print("Calculating accuracy...")
     accuracy = calculate_accuracy(prediction, actual)
     print("Accuracy:", accuracy * 100, "%")
+
+
+if args.plot_network:
+    model_path = args.plot_network[0]
+    ffnn = FFNNClassifier.load(model_path)
+    nnv = get_visualizer(ffnn)
+    nnv.plot_network()
+
+if args.plot_weights:
+    model_path = args.plot_weights[0]
+    layers_to_plot = args.layers_to_plot
+    plot_type = args.plot_type
+    ffnn = FFNNClassifier.load(model_path)
+    nnv = get_visualizer(ffnn)
+    nnv.plot_weight_distribution(layers_to_plot, plot_type)
+
+if args.plot_gradients:
+    model_path = args.plot_gradients[0]
+    layers_to_plot = args.layers_to_plot
+    plot_type = args.plot_type
+    ffnn = FFNNClassifier.load(model_path)
+    nnv = get_visualizer(ffnn)
+    nnv.plot_gradient_distribution(layers_to_plot, plot_type)
+
+

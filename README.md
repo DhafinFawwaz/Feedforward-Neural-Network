@@ -72,5 +72,14 @@ python main.py -load model/ffnn_1.pkt dataset/X_unlabeled.csv result/result.csv
 Accuracy
 python main.py -accuracy result/result.csv dataset/y.csv
 
+Plot Netowork
+python main.py -plot_network model/ffnn_1.pkt
+
+Plot Weight Distribution
+python main.py -plot_weight model/ffnn_1.pkt -layer 1 -plot_type hist
+
+Plot Gradient Distribution
+python main.py -plot_gradient model/ffnn_1.pkt -layer 0 1 -plot_type line
+
 Save with all parameters
 python main.py -save dataset/X.csv dataset/y.csv model/ffnn_1.pkt -test_size 0.1 -hidden_layer_sizes 256 128 64 -activation_func sigmoid sigmoid sigmoid sigmoid -learning_rate 0.05 -verbose 1 -max_epoch 15 -batch_size 50 -loss_func mean_squared_error -init_method normal -lower_bound 5.39294405e-05 -upper_bound 1 -mean 5.39294405e-05 -std .44 -seed 69
