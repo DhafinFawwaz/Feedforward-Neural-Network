@@ -4,6 +4,7 @@ import pandas as pd
 from lib.FFNNClassifier import FFNNClassifier
 from lib.Utils import load_mnist_dataset, train_test_split, calculate_accuracy, all_element_to_int, download_sample_dataset
 import argparse
+import time
 
 parser = argparse.ArgumentParser()
 parser = argparse.ArgumentParser(description="FFNNClassifier")
@@ -70,6 +71,9 @@ elif args.load:
     print(f"Loading:\n  Model={model_path}\n  Unlabeled={unlabeled_path}\n  Result={result_path}")
 
 if args.predict or args.save:
+    print("\nTraning Parameters:")
+    print(f"  Test Size: {args.test_size}")
+
     print("\nModel Parameters:")
     print(f"  Hidden Layers: {args.hidden_layer_sizes}")
     print(f"  Activation Functions: {args.activation_func}")
@@ -121,9 +125,14 @@ def predict_or_save(args, X_path, y_path):
     )
 
     print("Training model...")
+    start_time = time.time()
     ffnn.fit(X_train, y_train)
+    print("Training done in", time.time() - start_time, "seconds")
+
+    print("Predicting to calculate accuracy...")
     prediction = ffnn.predict(X_test)
     print("Accuracy:", calculate_accuracy(prediction, y_test_original) * 100, "%")
+
 
     return ffnn
 

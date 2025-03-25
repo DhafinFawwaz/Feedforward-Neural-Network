@@ -288,9 +288,8 @@ class FFNNClassifier:
     @staticmethod
     def preprocess(X, y):
         def one_hot_encode(y, num_of_classes = 10):
-            arr = []
+            arr = np.zeros((len(y), num_of_classes))
             for i in range(len(y)):
-                arr.append([0 for j in range(num_of_classes)]) # hardcoded 10 for the number of classes
                 arr[i][int(y[i])] = 1
             return arr
 

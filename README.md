@@ -61,7 +61,7 @@ Predict
 python main.py -predict dataset/X.csv dataset/y.csv dataset/unlabeled.csv result/result.csv
 
 Save
-python main.py -save x.csv model/ffnn_1.pkt
+python main.py -save dataset/X.csv dataset/y.csv model/ffnn_1.pkt
 
 Load
 python main.py -load model/ffnn_1.pkt dataset/X_unlabeled.csv result/result.csv

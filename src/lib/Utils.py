@@ -36,10 +36,10 @@ def load_mnist_dataset(X_path="dataset/X.csv", y_path="dataset/y.csv"):
 def train_test_split(X, y, test_size=0.1):
     n = len(y)
     n_train = int(n * (1 - test_size))
-    X_train = X[:n_train]
-    y_train = y[:n_train]
-    X_test = X[n_train:]
-    y_test = y[n_train:]
+    X_train = np.array(X[:n_train])
+    y_train = np.array(y[:n_train])
+    X_test  = np.array(X[n_train:])
+    y_test  = np.array(y[n_train:])
     return X_train, X_test, y_train, y_test
 
 def one_hot_encode(y):
