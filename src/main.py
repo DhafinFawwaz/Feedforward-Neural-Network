@@ -38,6 +38,13 @@ group.add_argument(
     help='Load and use an existing model'
 )
 
+group.add_argument(
+    '-accuracy',
+    nargs=2, 
+    metavar=('PREDICTION_PATH', 'ACTUAL_PATH'),
+    help='Get the accuracy of a prediction'
+)
+
 parser.add_argument('--test_size', type=float, default=0.1)
 parser.add_argument('--hidden_layer_sizes', type=int, nargs='+', default=[256, 128, 64])
 parser.add_argument('--activation_func', nargs='+', default=["sigmoid", "sigmoid", "sigmoid", "sigmoid"])
@@ -69,25 +76,28 @@ elif args.save:
 elif args.load:
     model_path, unlabeled_path, result_path = args.load
     print(f"Loading:\n  Model={model_path}\n  Unlabeled={unlabeled_path}\n  Result={result_path}")
+elif args.accuracy:
+    prediction_path, actual_path = args.accuracy
+    print(f"Accuracy:\n  Prediction={prediction_path}\n  Actual={actual_path}")
 
 if args.predict or args.save:
     print("\nTraning Parameters:")
-    print(f"  Test Size: {args.test_size}")
+    print("Test Size:", args.test_size)
 
     print("\nModel Parameters:")
-    print(f"  Hidden Layers: {args.hidden_layer_sizes}")
-    print(f"  Activation Functions: {args.activation_func}")
-    print(f"  Learning Rate: {args.learning_rate}")
-    print(f"  Verbose: {args.verbose}")
-    print(f"  Epochs: {args.max_epoch}")
-    print(f"  Batch Size: {args.batch_size}")
-    print(f"  Loss Function: {args.loss_func}")
-    print(f"  Init Method: {args.init_method}")
-    print(f"  Lower Bound: {args.lower_bound}")
-    print(f"  Upper Bound: {args.upper_bound}")
-    print(f"  Mean: {args.mean}")
-    print(f"  Std: {args.std}")
-    print(f"  Seed: {args.seed}")
+    print("Hidden Layers:", args.hidden_layer_sizes)
+    print("Activation Functions:", args.activation_func)
+    print("Learning Rate:", args.learning_rate)
+    print("Verbose:", args.verbose)
+    print("Epochs:", args.max_epoch)
+    print("Batch Size:", args.batch_size)
+    print("Loss Function:", args.loss_func)
+    print("Init Method:", args.init_method)
+    print("Lower Bound:", args.lower_bound)
+    print("Upper Bound:", args.upper_bound)
+    print("Mean:", args.mean)
+    print("Std:", args.std)
+    print("Seed:", args.seed)
 
 
 
@@ -127,7 +137,7 @@ def predict_or_save(args, X_path, y_path):
     print("Training model...")
     start_time = time.time()
     ffnn.fit(X_train, y_train)
-    print("Training done in", time.time() - start_time, "seconds")
+    print("Training done in", f"{time.time() - start_time:.2f}", "seconds")
 
     print("Predicting to calculate accuracy...")
     prediction = ffnn.predict(X_test)
@@ -159,11 +169,13 @@ if args.save:
 
 if args.load:
     model_path, unlabeled_path, result_path = args.load
+
+    print("Loading model...")
     ffnn = FFNNClassifier.load(model_path)
 
     print("Reading unlabeled dataset...")
     X_unlabeled = pd.read_csv(unlabeled_path).to_numpy()
-    X_unlabeled = FFNNClassifier.preprocess(X_unlabeled)
+    X_unlabeled = FFNNClassifier.preprocess_x(X_unlabeled)
     
     print("Predicting...")
     prediction = ffnn.predict(X_unlabeled)
@@ -172,3 +184,14 @@ if args.load:
     print("Writing result to CSV...")
     pd.DataFrame(prediction).to_csv(result_path, index=False)
     print("Result saved!")
+
+if args.accuracy:
+    prediction_path, actual_path = args.accuracy
+
+    print("Reading prediction and actual dataset...")
+    prediction = pd.read_csv(prediction_path).to_numpy()
+    actual = pd.read_csv(actual_path).to_numpy()
+
+    print("Calculating accuracy...")
+    accuracy = calculate_accuracy(prediction, actual)
+    print("Accuracy:", accuracy * 100, "%")

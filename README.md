@@ -19,7 +19,7 @@ pip install -r requirements.txt
 
 
 can only be either one of the following:
--download, -predict, -save, -load
+-download, -predict, -save, -load, -accuracy
 
 Download the dataset from mnist and save it to the specified path
 -download <dataset_filepath_x> <dataset_filepath_y>
@@ -32,6 +32,9 @@ Save model
 
 Load existing model
 -load <model_filepath> <unlabeled_filepath> <result_filepath>
+
+Calculate accuracy
+-accuracy <result_filepath> <ground_truth_filepath>
 
 Do this if -predict or -save
 Set values for -save and -predict. defaults are:
@@ -65,3 +68,9 @@ python main.py -save dataset/X.csv dataset/y.csv model/ffnn_1.pkt
 
 Load
 python main.py -load model/ffnn_1.pkt dataset/X_unlabeled.csv result/result.csv
+
+Accuracy
+python main.py -accuracy result/result.csv dataset/y.csv
+
+Save with all parameters
+python main.py -save dataset/X.csv dataset/y.csv model/ffnn_1.pkt -test_size 0.1 -hidden_layer_sizes 256 128 64 -activation_func sigmoid sigmoid sigmoid sigmoid -learning_rate 0.05 -verbose 1 -max_epoch 15 -batch_size 50 -loss_func mean_squared_error -init_method normal -lower_bound 5.39294405e-05 -upper_bound 1 -mean 5.39294405e-05 -std .44 -seed 69

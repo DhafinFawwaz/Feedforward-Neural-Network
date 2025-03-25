@@ -42,10 +42,12 @@ class FFNNClassifier:
         self.std = std
         self.seed = seed
 
+        self.amount_of_features = -1
+
 
     # return [ matrix, matrix, matrix ... ] where matrix is the weight adjacency matrix for each layer. length should be number of layers - 1 because its like the edges/connection between the nodes
     def _generate_initial_weights(self):
-        len_features = len(self.X[0])
+        len_features = self._get_amount_of_features()
         layers = np.copy([len_features])
         len_classes = np.array([self._get_number_of_classes()])
         layers = np.append(layers, self.hidden_layer_sizes)
@@ -118,10 +120,14 @@ class FFNNClassifier:
 
 # region getters setters
 
+    def _get_amount_of_features(self) -> int:
+        if self.amount_of_features == -1: raise Exception("X and y is not set yet")
+        return self.amount_of_features
+
     # Can only be called after setting X and y
     def _get_hidden_layer_sizes(self) -> np.typing.NDArray:
 
-        len_features = len(self.X[0])
+        len_features = self._get_amount_of_features()
         len_classes = self._get_number_of_classes()
         layer_sizes = np.zeros(len(self.hidden_layer_sizes)+2, dtype=int)
         layer_sizes[0] = len_features
@@ -176,6 +182,8 @@ class FFNNClassifier:
             raise Exception("len(self.X[0]) == 0")
         if len(y) == 0:
             raise Exception("len(self.y) == 0")
+        
+        self.amount_of_features = len(X[0])
 
         # clean up in case this function is called multiple times
         self.X: NDArray = []
@@ -189,10 +197,10 @@ class FFNNClassifier:
         self.y = y
         initial_weight = self._generate_initial_weights()
         initial_bias = self._generate_initial_biases()
+        initial_gradients = [np.zeros_like(w) for w in initial_weight]
         self.weights_history = initial_weight
         self.biases_history = initial_bias
-        initial_gradients = [np.zeros_like(w) for w in initial_weight]
-        self.weight_gradients_history.append(initial_gradients)
+        self.weight_gradients_history = initial_gradients
 
         layer_sizes = self._get_hidden_layer_sizes()
         network_depth = len(layer_sizes)
@@ -259,7 +267,7 @@ class FFNNClassifier:
                     weight_gradiens[k-1] = np.dot(nodes_active[k-1].T, -delta)
                     bias_gradiens[k-1] = -delta
 
-                self.weight_gradients_history.append(weight_gradiens)
+                self.weight_gradients_history = weight_gradiens
 
                 # Update
                 for k in range(network_depth-1):
@@ -285,18 +293,26 @@ class FFNNClassifier:
                 print(f"weights: {self.weights_history}")
                 print(f"biases: {self.biases_history}")
 
+
     @staticmethod
-    def preprocess(X, y):
+    def preprocess_x(X):
+        def normalize(X, max_val = 255):
+            return X/max_val
+        return normalize(X)
+    
+    @staticmethod
+    def preprocess_y(y):
         def one_hot_encode(y, num_of_classes = 10):
             arr = np.zeros((len(y), num_of_classes))
             for i in range(len(y)):
                 arr[i][int(y[i])] = 1
             return arr
-
-        def normalize(X, max_val = 255):
-            return X/max_val
-        
-        return normalize(X), one_hot_encode(y)
+        return one_hot_encode(y)
+    
+    @staticmethod
+    def preprocess(X, y):
+        return FFNNClassifier.preprocess_x(X), FFNNClassifier.preprocess_y(y)
+           
 
     def predict(self, X_test: NDArray):
         prediction = np.zeros(len(X_test), dtype=int)
@@ -340,13 +356,14 @@ class FFNNClassifier:
             "weights_history": self.weights_history,
             "biases_history": self.biases_history,
             "weight_gradients_history": self.weight_gradients_history,
+            "amount_of_features": self.amount_of_features
         }
         with open(filename, "wb") as f:
             pickle.dump(data, f)
         if self.verbose:
             print(f"Model saved to {filename}")
 
-    @classmethod
+    @staticmethod
     def load(path: str) -> "FFNNClassifier":
         with open(path, "rb") as f:
             data = pickle.load(f)
@@ -364,12 +381,11 @@ class FFNNClassifier:
             upper_bound=data["upper_bound"],
             mean=data["mean"],
             std=data["std"],
-            seed=data["seed"]
+            seed=data["seed"],
         )
         model.weights_history = data["weights_history"]
         model.biases_history = data["biases_history"]
         model.weight_gradients_history = data["weight_gradients_history"]
+        model.amount_of_features = data["amount_of_features"]
 
-        if model.verbose:
-            print(f"Model loaded from {path}")
         return model
