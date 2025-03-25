@@ -49,3 +49,19 @@ upper_bound=1,
 mean=5.39294405e-05,
 std=.44,
 seed=69
+
+
+
+Example
+
+Download
+python main.py -download dataset/X.csv dataset/y.csv
+
+Predict
+python main.py -predict dataset/X.csv dataset/y.csv dataset/unlabeled.csv result/result.csv
+
+Save
+python main.py -save x.csv model/ffnn_1.pkt
+
+Load
+python main.py -load model/ffnn_1.pkt dataset/X_unlabeled.csv result/result.csv
