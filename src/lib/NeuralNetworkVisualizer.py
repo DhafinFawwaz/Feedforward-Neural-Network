@@ -75,7 +75,7 @@ class NeuralNetworkVisualizer:
                     edge_weights[(src, dst)] = f'{weight:.2f}'
             
             node_count += layer_size
-
+        
         if include_bias:
             for layer_idx, bias_node_id in bias_nodes:
                 next_layer_idx = layer_idx + 1
@@ -84,9 +84,13 @@ class NeuralNetworkVisualizer:
                     next_layer_end = next_layer_start + self.layers[next_layer_idx]
 
                     for node_idx, node_id in enumerate(range(next_layer_start, next_layer_end)):
-                        bias_weight = self.biases[layer_idx][node_idx]
+                        bias_temp = self.biases[layer_idx]
+                        bias_weight = -1
+                        if bias_temp.shape[0] == 1:
+                            bias_weight = bias_temp[0][node_idx]
+                        else:
+                            bias_weight = self.biases[layer_idx][node_idx]
                         G.add_edge(bias_node_id, node_id, weight=bias_weight)
-                        print(bias_weight)
                         edge_weights[(bias_node_id, node_id)] = f'{bias_weight:.2f}'
 
         plt.figure(figsize=(12, 10))

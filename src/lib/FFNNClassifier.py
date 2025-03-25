@@ -256,7 +256,8 @@ class FFNNClassifier:
 
 
                 weight_gradiens[network_depth-2] = np.dot(nodes_active[-2].T, -delta)
-                bias_gradiens[network_depth-2] = -delta
+                # bias_gradiens[network_depth-2] = -delta
+                bias_gradiens[network_depth-2] = -np.mean(delta, axis=0, keepdims=True)
 
 
                 for k in range(network_depth-2, 0, -1): # from the last hidden layer (not including the output layer)
@@ -265,7 +266,10 @@ class FFNNClassifier:
                     delta = np.dot(delta, w.T) * FFNNClassifier._activation_derived_function(nodes[k], self.activation_func[k-1])
 
                     weight_gradiens[k-1] = np.dot(nodes_active[k-1].T, -delta)
-                    bias_gradiens[k-1] = -delta
+                    # bias_gradiens[k-1] = -delta
+                    bias_gradiens[k-1] = -np.mean(delta, axis=0, keepdims=True)
+                    # print("delta.shape: ", delta.shape)
+                    # print("bias_gradiens[k-1].shape: ", bias_gradiens[k-1].shape)
 
                 self.weight_gradients_history = weight_gradiens
 
@@ -277,6 +281,8 @@ class FFNNClassifier:
                     weights[k] = w_k + self.learning_rate * weight_gradiens[k]
 
                     biases[k] = b_k + self.learning_rate * bias_gradiens[k]
+
+                    # print("biases[k].shape: ", biases[k].shape)
                 self.weights_history = weights
                 self.biases_history = biases
 
