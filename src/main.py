@@ -2,68 +2,164 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from lib.FFNNClassifier import FFNNClassifier
-from lib.Utils import load_mnist_dataset, train_test_split, calculate_accuracy, all_element_to_int
-
+from lib.Utils import load_mnist_dataset, train_test_split, calculate_accuracy, all_element_to_int, download_sample_dataset
 import argparse
 
 parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description="FFNNClassifier")
+group = parser.add_mutually_exclusive_group(required=True)
 
-# run_type:
-# save, load
+group.add_argument(
+    "-download",
+    nargs=2,
+    metavar=("X_PATH", "Y_PATH"),
+    help="Download the dataset from mnist and save it to the specified path",
+)
 
-# if save, use --predict, can immedietely predict
-# if load, immedietely predict and write the result to csv to file
-# default is save
+group.add_argument(
+    '-predict', 
+    nargs=4, 
+    metavar=('X_PATH', 'Y_PATH', 'UNLABELED_PATH', 'RESULT_PATH'),
+    help='Predict using dataset without saving the model'
+)
 
-# test_size, default 0.1
+group.add_argument(
+    '-save', 
+    nargs=3, 
+    metavar=('X_PATH', 'Y_PATH', 'MODEL_PATH'),
+    help='Train and save the model'
+)
 
-parser.add_argument('--load', action='store_true', help='Load existing model')
-parser.add_argument('--save', action='store_true', help='Save model after training')
+group.add_argument(
+    '-load',
+    nargs=3, 
+    metavar=('MODEL_PATH', 'UNLABELED_PATH', 'RESULT_PATH'),
+    help='Load and use an existing model'
+)
 
-
-parser.add_argument('-sizes', type=int, nargs='+', help='List of sizes')
-
-
-
-# Accept multiple values for -sizes
-parser.add_argument('-sizes', type=int, nargs='+', help='List of sizes')
-parser.add_argument('-learning_rate', type=float, help='Learning rate')
-parser.add_argument('-mean', type=float, help='Mean value')
+parser.add_argument('--test_size', type=float, default=0.1)
+parser.add_argument('--hidden_layer_sizes', type=int, nargs='+', default=[256, 128, 64])
+parser.add_argument('--activation_func', nargs='+', default=["sigmoid", "sigmoid", "sigmoid", "sigmoid"])
+parser.add_argument('--learning_rate', type=float, default=0.05)
+parser.add_argument('--verbose', type=int, default=1)
+parser.add_argument('--max_epoch', type=int, default=15)
+parser.add_argument('--batch_size', type=int, default=50)
+parser.add_argument('--loss_func', type=str, default="mean_squared_error")
+parser.add_argument('--init_method', type=str, default="normal")
+parser.add_argument('--lower_bound', type=float, default=5.39294405e-05)
+parser.add_argument('--upper_bound', type=float, default=1)
+parser.add_argument('--mean', type=float, default=5.39294405e-05)
+parser.add_argument('--std', type=float, default=0.44)
+parser.add_argument('--seed', type=int, default=69)
 
 args = parser.parse_args()
 
-print("Sizes:", args.sizes)
-print("Learning rate:", args.learning_rate)
-print("Mean:", args.mean)
+if args.download:
+    X_path, y_path = args.download
+    print(f"Downloading:\n  X={X_path}\n  y={y_path}")
+    download_sample_dataset(X_path, y_path)
+    print("Downloaded!")
+elif args.predict:
+    X_path, y_path, unlabeled_path, result_path = args.predict
+    print(f"Prediction:\n  X={X_path}\n  y={y_path}\n  Unlabeled={unlabeled_path}\n  Result={result_path}")
+elif args.save:
+    X_path, y_path, model_path = args.save
+    print(f"Saving:\n  X={X_path}\n  y={y_path}\n  Model={model_path}")
+elif args.load:
+    model_path, unlabeled_path, result_path = args.load
+    print(f"Loading:\n  Model={model_path}\n  Unlabeled={unlabeled_path}\n  Result={result_path}")
 
-exit(0)
+if args.predict or args.save:
+    print("\nModel Parameters:")
+    print(f"  Hidden Layers: {args.hidden_layer_sizes}")
+    print(f"  Activation Functions: {args.activation_func}")
+    print(f"  Learning Rate: {args.learning_rate}")
+    print(f"  Verbose: {args.verbose}")
+    print(f"  Epochs: {args.max_epoch}")
+    print(f"  Batch Size: {args.batch_size}")
+    print(f"  Loss Function: {args.loss_func}")
+    print(f"  Init Method: {args.init_method}")
+    print(f"  Lower Bound: {args.lower_bound}")
+    print(f"  Upper Bound: {args.upper_bound}")
+    print(f"  Mean: {args.mean}")
+    print(f"  Std: {args.std}")
+    print(f"  Seed: {args.seed}")
 
-X, y = load_mnist_dataset()
-X_train, X_test, y_train, y_test = train_test_split(X, y)
-y_test_original = all_element_to_int(y_test)
-X_train, y_train = FFNNClassifier.preprocess(X_train, y_train)
-X_test, y_test = FFNNClassifier.preprocess(X_test, y_test)
 
-ffnn = FFNNClassifier(
-    hidden_layer_sizes=[256, 128, 64],
-    activation_func=["sigmoid", "sigmoid", "sigmoid", "sigmoid"],
-    learning_rate=0.05,
-    verbose=1,
-    max_epoch=15,
-    batch_size=50,
-    loss_func="mean_squared_error",
-    init_method="normal",
-    lower_bound=5.39294405e-05,
-    upper_bound=1,
-    mean=5.39294405e-05,
-    std=.44,
-    seed=69
-)
 
-ffnn.fit(X_train, y_train)
-prediction = ffnn.predict(X_test)
 
-print("Accuracy:", calculate_accuracy(prediction, y_test_original) * 100, "%")
+# =================== Start Here ===================
 
-print("Saving model...")
-ffnn.save("model/ffnn_model.ffnn")
+def predict_or_save(args, X_path, y_path):
+
+    X, y = load_mnist_dataset(X_path, y_path)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=args.test_size)
+    y_test_original = all_element_to_int(y_test)
+    X_train, y_train = FFNNClassifier.preprocess(X_train, y_train)
+    X_test, y_test = FFNNClassifier.preprocess(X_test, y_test)
+
+    
+    print("X_train shape:", X_train.shape)
+    print("y_train shape:", y_train.shape)
+    print("X_test shape:", X_test.shape)
+    print("y_test shape:", y_test.shape)
+
+    ffnn = FFNNClassifier(
+        hidden_layer_sizes=args.hidden_layer_sizes,
+        activation_func=args.activation_func,
+        learning_rate=args.learning_rate,
+        verbose=args.verbose,
+        max_epoch=args.max_epoch,
+        batch_size=args.batch_size,
+        loss_func=args.loss_func,
+        init_method=args.init_method,
+        lower_bound=args.lower_bound,
+        upper_bound=args.upper_bound,
+        mean=args.mean,
+        std=args.std,
+        seed=args.seed
+    )
+
+    print("Training model...")
+    ffnn.fit(X_train, y_train)
+    prediction = ffnn.predict(X_test)
+    print("Accuracy:", calculate_accuracy(prediction, y_test_original) * 100, "%")
+
+    return ffnn
+
+if args.predict:
+    X_path, y_path, unlabeled_path, result_path = args.predict
+    ffnn = predict_or_save(args, X_path, y_path)
+
+    print("Reading unlabeled dataset...")
+    X_unlabeled = pd.read_csv(unlabeled_path).to_numpy()
+    X_unlabeled = FFNNClassifier.preprocess(X_unlabeled)
+    
+    print("Predicting...")
+    prediction = ffnn.predict(X_unlabeled)
+    print("Prediction done!")
+
+
+if args.save:
+    X_path, y_path, model_path = args.save
+    ffnn = predict_or_save(args, X_path, y_path)
+
+    print("Saving model...")
+    ffnn.save(model_path)
+    print("Model saved!")
+
+if args.load:
+    model_path, unlabeled_path, result_path = args.load
+    ffnn = FFNNClassifier.load(model_path)
+
+    print("Reading unlabeled dataset...")
+    X_unlabeled = pd.read_csv(unlabeled_path).to_numpy()
+    X_unlabeled = FFNNClassifier.preprocess(X_unlabeled)
+    
+    print("Predicting...")
+    prediction = ffnn.predict(X_unlabeled)
+    print("Prediction done!")
+
+    print("Writing result to CSV...")
+    pd.DataFrame(prediction).to_csv(result_path, index=False)
+    print("Result saved!")

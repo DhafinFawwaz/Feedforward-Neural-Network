@@ -5,21 +5,21 @@ from lib.FFNNClassifier import FFNNClassifier
 from sklearn.datasets import fetch_openml
 from matplotlib.axes._axes import Axes
 
-def download_sample_dataset():
+def download_sample_dataset(X_path="dataset/X.csv", y_path="dataset/y.csv"):
     X, y = fetch_openml("mnist_784", version=1, return_X_y=True, as_frame=False)
-    pd.DataFrame(X).to_csv('dataset/X.csv', index=False)
-    pd.DataFrame(y).to_csv('dataset/y.csv', index=False)
+    pd.DataFrame(X).to_csv(X_path, index=False)
+    pd.DataFrame(y).to_csv(y_path, index=False)
 
-def load_mnist_dataset():
+def load_mnist_dataset(X_path="dataset/X.csv", y_path="dataset/y.csv"):
     X_csv = None
     y_csv = None
     try:
         print("Reading dataset...")
-        X_csv = pd.read_csv("dataset/X.csv")
-        y_csv = pd.read_csv("dataset/y.csv")
+        X_csv = pd.read_csv(X_path)
+        y_csv = pd.read_csv(y_path)
     except:
         print("Dataset Not found! Downloading dataset...")
-        download_sample_dataset()
+        download_sample_dataset(X_path, y_path)
         print("Reading dataset...")
         X_csv = pd.read_csv("dataset/X.csv")
         y_csv = pd.read_csv("dataset/y.csv")
