@@ -163,7 +163,7 @@ class NeuralNetworkVisualizer:
 
     def plot_weight_distribution(self, layers_to_plot, plot_type='histogram'):
         plt.figure(figsize=(10, 6))
-        
+
         if plot_type == 'histogram':
             for layer_idx in layers_to_plot:
                 plt.hist(self.weights[layer_idx].flatten(), bins=20, alpha=0.5, label=f'Layer {layer_idx}')
@@ -219,22 +219,32 @@ class NeuralNetworkVisualizer:
 
 
 if __name__ == "__main__":
-    layers = [3, 4, 2]
+    input_size = 784
+    output_size = 10
+    # hidden_layers = [256, 128, 64] # takes too long to plot
+    hidden_layers = [8, 4, 2]
 
-    custom_weights = [
-        np.random.normal(0, 0.5, (3, 4)),
-        np.random.normal(0, 0.5, (4, 2))
-    ]
+    layers = [input_size, *hidden_layers, output_size]
 
-    custom_gradients = [
-        np.random.normal(0, 0.1, (3, 4)),
-        np.random.normal(0, 0.1, (4, 2))
-    ]
+    custom_weights = []
+    for i in range(1, len(layers)):
+        if i == 0:
+            custom_weights.append(np.random.normal(0, 0.5, (input_size, layers[i])))
+        else:
+            custom_weights.append(np.random.normal(0, 0.5, (layers[i-1], layers[i])))
 
-    custom_biases = [
-        np.random.normal(0, 0.3),  # Biases for the first hidden layer
-        np.random.normal(0, 0.3)   # Biases for the output layer
-    ]
+    custom_gradients = []
+
+    for i in range(1, len(layers)):
+        if i == 0:
+            custom_gradients.append(np.random.normal(0, 0.1, (input_size, layers[i])))
+        else:
+            custom_gradients.append(np.random.normal(0, 0.1, (layers[i-1], layers[i])))
+
+    custom_biases = []
+
+    for i in range(1, len(layers)):
+        custom_biases.append(np.random.normal(0, 0.3, layers[i]))
 
     visualizer = NeuralNetworkVisualizer(layers, 
                                     weights=custom_weights,

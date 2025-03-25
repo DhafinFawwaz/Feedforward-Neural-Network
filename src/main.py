@@ -66,7 +66,7 @@ group.add_argument(
     help='Plot the gradient distribution'
 )
 parser.add_argument('--layers_to_plot', type=int, nargs='+', default=[0])
-parser.add_argument('--plot_type', type=str, default="hist")
+parser.add_argument('--plot_type', type=str, default="histogram")
 
 parser.add_argument('--test_size', type=float, default=0.1)
 parser.add_argument('--hidden_layer_sizes', type=int, nargs='+', default=[256, 128, 64])
