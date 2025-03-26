@@ -3,7 +3,7 @@ import numpy as np
 from numpy.typing import NDArray, ArrayLike
 import pickle
 
-from src.lib.WeightInitialization import WeightInitiator
+from lib.WeightInitialization import WeightInitiator
 
 
 class FFNNClassifier:
