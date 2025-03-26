@@ -1,19 +1,20 @@
 from typing import Literal, Callable, Union, List
 import numpy as np
 from numpy.typing import NDArray, ArrayLike
-from lib.WeightInitialization import WeightInitiator
 import pickle
+
+from src.lib.WeightInitialization import WeightInitiator
 
 
 class FFNNClassifier:
     def __init__(self,
             hidden_layer_sizes: NDArray,
-            activation_func: List[Literal['linear', 'relu', 'sigmoid', 'tanh', 'softmax']],
             learning_rate: float,
-            verbose: int, # 0: no print, 1: print epoch progress
-            max_epoch: int,
-            batch_size: int,
-            loss_func: Literal['mean_squared_error', 'binary_cross_entropy', 'categorical_cross_entropy'],
+            activation_func: List[Literal['linear', 'relu', 'sigmoid', 'tanh', 'softmax']] = None,
+            verbose: int = 0, # 0: no print, 1: print epoch progress
+            max_epoch: int = 50,
+            batch_size: int = 256,
+            loss_func: Literal['mean_squared_error', 'binary_cross_entropy', 'categorical_cross_entropy'] = 'mean_squared_error',
             init_method: Literal['normal', 'zero', 'uniform'] = 'zero',
             lower_bound: float = 0.0,
             upper_bound: float = 1.0,
@@ -28,7 +29,10 @@ class FFNNClassifier:
         self.biases_history: list[ArrayLike] = [] # array of bias list. index is current epoch
         self.weight_gradients_history: list[NDArray] = [] # array of weight gradients. index is current epoch
 
-        self.activation_func = activation_func
+        if activation_func is None:
+            self.activation_func = ['sigmoid'] * len(hidden_layer_sizes) + ['softmax']
+        else:
+            self.activation_func = activation_func
         self.learning_rate = learning_rate
         self.verbose = verbose
         self.epoch_amount = max_epoch
@@ -44,7 +48,7 @@ class FFNNClassifier:
 
         self.amount_of_features = -1
 
-        self.loss_history = []
+        self.loss_history = np.zeros(max_epoch)
 
 
     # return [ matrix, matrix, matrix ... ] where matrix is the weight adjacency matrix for each layer. length should be number of layers - 1 because its like the edges/connection between the nodes
@@ -240,9 +244,10 @@ class FFNNClassifier:
                 # print("self.y[current_dataset_idx:until_idx]: ", self.y[current_dataset_idx:until_idx])
                 # print("nodes_active[network_depth-1]: ", nodes_active[network_depth-1])
                 # print("loss_grad: ", loss_grad)
+                if isinstance(loss_grad, np.ndarray):
+                    loss_grad = loss_grad.mean()  # or loss_grad.item() if it's a single-element array
 
                 self.loss_history[epoch] = loss_grad
-
 
                 # Backward Propagation
                 weight_gradiens = [0 for i in range(len(self.weights_history))] # 0 will be replaced with numpy.array
