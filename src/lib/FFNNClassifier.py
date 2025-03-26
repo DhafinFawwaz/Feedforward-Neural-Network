@@ -50,6 +50,9 @@ class FFNNClassifier:
 
         self.loss_history = np.zeros(max_epoch)
 
+        if len(hidden_layer_sizes) != len(activation_func) - 1:
+            raise Exception("should be len(hidden_layer_sizes) == len(activation_func) - 1")
+
 
     # return [ matrix, matrix, matrix ... ] where matrix is the weight adjacency matrix for each layer. length should be number of layers - 1 because its like the edges/connection between the nodes
     def _generate_initial_weights(self):
@@ -198,7 +201,7 @@ class FFNNClassifier:
         self.biases_history: list[ArrayLike] = []
         self.weight_gradients_history: list[NDArray] = []
 
-        self.loss_history = np.zeros(self.epoch_amount)
+        self.loss_history = []
 
 
         self.X = X
@@ -247,7 +250,7 @@ class FFNNClassifier:
                 if isinstance(loss_grad, np.ndarray):
                     loss_grad = loss_grad.mean()  # or loss_grad.item() if it's a single-element array
 
-                self.loss_history[epoch] = loss_grad
+                self.loss_history.append(loss_grad)
 
                 # Backward Propagation
                 weight_gradiens = [0 for i in range(len(self.weights_history))] # 0 will be replaced with numpy.array
