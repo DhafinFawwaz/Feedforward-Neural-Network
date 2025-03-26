@@ -50,7 +50,7 @@ class FFNNClassifier:
 
         self.loss_history = np.zeros(max_epoch)
 
-        if len(hidden_layer_sizes) != len(activation_func) - 1:
+        if len(self.hidden_layer_sizes) != len(self.activation_func) - 1:
             raise Exception("should be len(hidden_layer_sizes) == len(activation_func) - 1")
 
 
@@ -247,8 +247,8 @@ class FFNNClassifier:
                 # print("self.y[current_dataset_idx:until_idx]: ", self.y[current_dataset_idx:until_idx])
                 # print("nodes_active[network_depth-1]: ", nodes_active[network_depth-1])
                 # print("loss_grad: ", loss_grad)
-                if isinstance(loss_grad, np.ndarray):
-                    loss_grad = loss_grad.mean()  # or loss_grad.item() if it's a single-element array
+                # if isinstance(loss_grad, np.ndarray):
+                #     loss_grad = loss_grad.mean()  # or loss_grad.item() if it's a single-element array
 
                 self.loss_history.append(loss_grad)
 

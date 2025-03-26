@@ -84,3 +84,7 @@ python main.py -plot_weights model/ffnn_2.pkt --layers_to_plot 0 1 2 3 --plot_ty
 
 Save with all parameters
 python main.py -save dataset/X.csv dataset/y.csv model/ffnn_1.pkt -test_size 0.1 -hidden_layer_sizes 256 128 64 -activation_func sigmoid sigmoid sigmoid sigmoid -learning_rate 0.05 -verbose 1 -max_epoch 15 -batch_size 50 -loss_func mean_squared_error -init_method normal -lower_bound 5.39294405e-05 -upper_bound 1 -mean 5.39294405e-05 -std .44 -seed 69
+
+
+Predict
+python main.py -predict dataset/X.csv dataset/y.csv dataset/unlabeled.csv result/result.csv --loss_func categorical_cross_entropy --activation_func sigmoid sigmoid sigmoid softmax
