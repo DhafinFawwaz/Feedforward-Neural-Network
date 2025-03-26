@@ -44,6 +44,8 @@ class FFNNClassifier:
 
         self.amount_of_features = -1
 
+        self.loss_history = []
+
 
     # return [ matrix, matrix, matrix ... ] where matrix is the weight adjacency matrix for each layer. length should be number of layers - 1 because its like the edges/connection between the nodes
     def _generate_initial_weights(self):
@@ -192,6 +194,8 @@ class FFNNClassifier:
         self.biases_history: list[ArrayLike] = []
         self.weight_gradients_history: list[NDArray] = []
 
+        self.loss_history = np.zeros(self.epoch_amount)
+
 
         self.X = X
         self.y = y
@@ -236,6 +240,8 @@ class FFNNClassifier:
                 # print("self.y[current_dataset_idx:until_idx]: ", self.y[current_dataset_idx:until_idx])
                 # print("nodes_active[network_depth-1]: ", nodes_active[network_depth-1])
                 # print("loss_grad: ", loss_grad)
+
+                self.loss_history[epoch] = loss_grad
 
 
                 # Backward Propagation
@@ -299,6 +305,7 @@ class FFNNClassifier:
                 print(f"weights: {self.weights_history}")
                 print(f"biases: {self.biases_history}")
 
+        return self.loss_history
 
     @staticmethod
     def preprocess_x(X):
@@ -362,7 +369,8 @@ class FFNNClassifier:
             "weights_history": self.weights_history,
             "biases_history": self.biases_history,
             "weight_gradients_history": self.weight_gradients_history,
-            "amount_of_features": self.amount_of_features
+            "amount_of_features": self.amount_of_features,
+            "loss_history": self.loss_history
         }
         with open(filename, "wb") as f:
             pickle.dump(data, f)
@@ -393,5 +401,6 @@ class FFNNClassifier:
         model.biases_history = data["biases_history"]
         model.weight_gradients_history = data["weight_gradients_history"]
         model.amount_of_features = data["amount_of_features"]
+        model.loss_history = data["loss_history"]
 
         return model
