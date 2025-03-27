@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.metrics import accuracy_score
+from sklearn.neural_network import MLPClassifier
 from lib.FFNNClassifier import FFNNClassifier
 from sklearn.datasets import fetch_openml
 from matplotlib.axes._axes import Axes
@@ -90,3 +92,65 @@ def visualize_dataset(X, y, row_count, col_count, offset = 0):
         )
 
     plt.show()
+
+
+def model_comparison(sk_mlp: MLPClassifier, custom_mlp: FFNNClassifier, X_train_scaled, y_train, y_train_one_hot, X_test_scaled, y_test, y_test_one_hot, is_only_show_accuracy: bool = False):
+    # print(X_train_scaled)
+    # print(y_train)
+    # print(y_train_one_hot)
+    # print(X_test_scaled)
+    # print(y_test)
+    # print(y_test_one_hot)
+
+    print("[SKLearn MLPClassifier]")
+    sk_mlp.fit(X_train_scaled, y_train)
+    # sk_pred = sk_mlp.predict(X_test_scaled)
+    # sk_pred_proba = sk_mlp.predict_proba(X_test_scaled)
+    # sk_accuracy = accuracy_score(y_test, sk_pred)
+    # if is_only_show_accuracy:
+    #     print("Accuracy:\n", sk_accuracy)
+    # else:
+    #     print("Weights:\n", sk_mlp.coefs_)
+    #     print("Biases:\n", sk_mlp.intercepts_)
+    #     print("Prediction:\n", sk_pred)
+    #     print("Prediction Probability:\n", sk_pred_proba)
+    #     print("Accuracy:\n", sk_accuracy)
+    # print()
+
+    print("[From Scratch FFNNClassifier]")
+    custom_mlp.fit(X_train_scaled, y_train_one_hot)
+    # custom_pred = custom_mlp.predict(X_test_scaled)
+    # custom_pred_proba = custom_mlp.predict_proba(X_test_scaled)
+    # y_test_labels = np.argmax(y_test_one_hot, axis=1)
+    # custom_accuracy = accuracy_score(y_test_labels, custom_pred)
+    # if is_only_show_accuracy:
+    #     print("Accuracy:\n", custom_accuracy)
+    # else:
+    #     print("Weights:\n", custom_mlp.weights_history)
+    #     print("Biases:\n", custom_mlp.biases_history)
+    #     print("Prediction:\n", custom_pred)
+    #     print("Prediction Probability:\n", custom_pred_proba)
+    #     print("Accuracy:\n", custom_accuracy)
+    # print()
+
+    # print("[Comparison Result]")
+    # if(is_arr_equal(sk_mlp.coefs_, custom_mlp.weights_history)): print("✅ Weight is equal")
+    # else: print("❌ Weight is not equal")
+    # if(is_arr_equal(sk_mlp.intercepts_, custom_mlp.biases_history)): print("✅ Bias is equal")
+    # else: print("❌ Bias is not equal")
+    # if(is_arr_equal(sk_pred, custom_pred)): print("✅ Prediction is equal")
+    # else: print("❌ Prediction is not equal")
+    # if(is_arr_equal(sk_pred_proba, custom_pred_proba)): print("✅ Prediction Probability is equal")
+    # else: print("❌ Prediction Probability is not equal")
+    # print()
+
+def is_arr_equal(arr1, arr2):
+    # numpy check if array of float is equal with tolerance
+    if isinstance(arr1, list) and isinstance(arr2, list) or isinstance(arr1, np.ndarray) and isinstance(arr2, np.ndarray):
+        for i in range(len(arr1)):
+            if not np.allclose(arr1[i], arr2[i], rtol=1e-05, atol=1e-10):
+                # print(arr1[i], "!=", arr2[i])
+                return False
+        return True
+    else:
+        return np.allclose(arr1, arr2, rtol=1e-05, atol=1e-08)

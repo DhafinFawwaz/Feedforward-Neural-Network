@@ -2,6 +2,9 @@ from typing import Literal, Callable, Union, List
 import numpy as np
 from numpy.typing import NDArray, ArrayLike
 import pickle
+
+from sklearn.calibration import expit
+from scipy.special import xlogy
 from lib.WeightInitialization import WeightInitialization
 
 class FFNNClassifier:
@@ -86,7 +89,8 @@ class FFNNClassifier:
     def _activation_function(x: Union[float, NDArray], func: str):
         if func == 'linear': return x
         elif func == 'relu': return np.maximum(0, x)
-        elif func == 'sigmoid': return 1.0/(1.0 + np.exp(-x))
+        # elif func == 'sigmoid': return 1.0/(1.0 + np.exp(-x))
+        elif func == 'sigmoid': return expit(x)
         elif func == 'tanh': return np.tanh(x)
         elif func == 'softmax':
             exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
@@ -129,9 +133,17 @@ class FFNNClassifier:
     @staticmethod
     def _loss_function(y_act, y_pred, func: str):
         if func == "categorical_cross_entropy":
+            eps = np.finfo(y_pred.dtype).eps
+            y_pred = np.clip(y_pred, eps, 1 - eps)
             if y_pred.shape[1] == 1: y_pred = np.append(1 - y_pred, y_pred, axis=1) # case when the target has only 1 column. It should never happens tho but just put it here just in case.
             if y_act.shape[1] == 1: y_act = np.append(1 - y_act, y_act, axis=1)
-            return -(y_act*np.log(y_pred)).sum() / len(y_pred)
+            # return -(y_act*np.log(y_pred)).sum() / len(y_pred)
+            # print(-xlogy(y_act, y_pred))
+            # print(-xlogy(y_act, y_pred).sum())
+            # print(y_pred.shape[0])
+            # print(-xlogy(y_act, y_pred).sum() / y_pred.shape[0])
+            return -xlogy(y_act, y_pred).sum() / y_pred.shape[0]
+
         elif func == "squared_loss":
             res = (y_act - y_pred)
             return (res * res).mean()/2
@@ -235,11 +247,13 @@ class FFNNClassifier:
         # print(initial_bias)
         initial_gradients = [np.zeros_like(w) for w in initial_weight]
         self.weights_history = initial_weight
+        print(initial_weight)
         self.biases_history = initial_bias
         self.weight_gradients_history = initial_gradients
 
         layer_sizes = self._get_hidden_layer_sizes()
         network_depth = len(layer_sizes)
+
 
         for epoch in range(self.epoch_amount):
             # for current_dataset_idx in range(len(self.X)):
@@ -262,27 +276,31 @@ class FFNNClassifier:
 
                     # print("dot",np.dot(h_k_min_1, w_k))
                     # print("b_k",b_k)
-                    a_k = b_k + np.dot(h_k_min_1, w_k) # numpy will automatically broadcast b_k (row will be copied to match the result from dot) so that this is addable
-                    # print("a_k", a_k)
+                    # a_k = b_k + np.dot(h_k_min_1, w_k) # numpy will automatically broadcast b_k (row will be copied to match the result from dot) so that this is addable
+                    a_k = b_k + (h_k_min_1 @ w_k)
+                    # print("(h_k_min_1 @ w_k)", (h_k_min_1 @ w_k))
 
                     nodes[k] = a_k
                     nodes_active[k] = FFNNClassifier._activation_function(a_k, self.activation_func[k-1])
+                
+                # print(nodes_active[-1][-1])
+                # print(nodes_active[-1][-1])
 
                 # print([p.shape for p in nodes_active])
                 y_act = self.y[current_dataset_idx:until_idx]
                 y_pred = nodes_active[network_depth-1]
+
                 # print("y_act", y_act)
                 # print("y_pred", y_pred)
-                loss_grad = FFNNClassifier._loss_function_derived(
-                    y_act=y_act,
-                    y_pred=y_pred,
-                    func=self.loss_func
-                )
+                # print(nodes_active[-1])
+                
                 loss = FFNNClassifier._loss_function( # cause the spec says so
                     y_act=y_act,
                     y_pred=y_pred,
                     func=self.loss_func
                 )
+                # print("loss", loss)
+
                 # print("self.y[current_dataset_idx:until_idx]: ", self.y[current_dataset_idx:until_idx])
                 # print("nodes_active[network_depth-1]: ", nodes_active[network_depth-1])
                 # print("loss_grad: ", loss_grad)
@@ -304,10 +322,20 @@ class FFNNClassifier:
 
                 elif self.activation_func[-1] == 'softmax' and self.loss_func != 'categorical_cross_entropy':
                     jacobians = FFNNClassifier._activation_derived_function(nodes[-1], self.activation_func[-1])
+                    loss_grad = FFNNClassifier._loss_function_derived(
+                        y_act=y_act,
+                        y_pred=y_pred,
+                        func=self.loss_func
+                    )
                     loss_grad_col = loss_grad[..., np.newaxis] # (batch_size, n) -> (batch_size, n, 1)
                     delta = np.matmul(jacobians, loss_grad_col)  # (batch_size, n, 1)
                     delta = np.squeeze(delta, axis=-1) # (batch_size, n)
                 else:
+                    loss_grad = FFNNClassifier._loss_function_derived(
+                        y_act=y_act,
+                        y_pred=y_pred,
+                        func=self.loss_func
+                    )
                     delta = loss_grad * FFNNClassifier._activation_derived_function(nodes[-1], self.activation_func[-1])
 
                 # print("delta:",delta)
@@ -325,7 +353,7 @@ class FFNNClassifier:
                     # print(nodes_active[k-1].T)
                     # print(delta)
                     # weight_gradiens[k-1] = np.dot(nodes_active[k-1].T, -delta)
-                    weight_gradiens[k-1] = nodes_active[k-1].T @ delta / self.X.shape[0]
+                    weight_gradiens[k-1] = nodes_active[k-1].T @ delta / self.batch_size
                     # bias_gradiens[k-1] = -delta
                     bias_gradiens[k-1] = np.mean(delta, axis=0, keepdims=True)
                     # print("delta.shape: ", delta.shape)
@@ -391,9 +419,11 @@ class FFNNClassifier:
            
 
     def predict(self, X_test: NDArray):
-        if self.seed is not None:
-            np.random.seed(self.seed)
-        prediction = np.zeros(len(X_test), dtype=int)
+        proba = self.predict_proba(X_test)
+        return np.argmax(proba, axis=1)
+    
+    def predict_proba(self, X_test: NDArray):
+        prediction = np.zeros((len(X_test), self._get_number_of_classes()))
         current_idx = 0
         while current_idx < len(X_test):
             weights, nodes, nodes_active, biases = self._generate_new_empty_layers()
@@ -410,10 +440,9 @@ class FFNNClassifier:
 
                 nodes[k] = a_k
                 nodes_active[k] = FFNNClassifier._activation_function(a_k, self.activation_func[k-1])
-            predicted_class = [int(np.argmax(nodes_active[-1][i])) for i in range(len(nodes_active[-1]))] # idx with highest value. idx is also the class
-            prediction[current_idx:until_idx] = predicted_class
+            
+            prediction[current_idx:until_idx] = nodes_active[-1]
             current_idx += self.batch_size
-
         return prediction
     
     def save(self, filename: str) -> None:
