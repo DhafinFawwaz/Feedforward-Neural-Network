@@ -63,6 +63,10 @@ for weight_config in weight_configs:
     model_comparison(sk_mlp, custom_mlp, False)
 """
 from sklearn.base import is_classifier
+from sklearn.model_selection import train_test_split
+from sklearn.utils import gen_batches
+from sklearn.utils._indexing import _safe_indexing
+from sklearn.neural_network._stochastic_optimizers import SGDOptimizer
 
 _STOCHASTIC_SOLVERS = ["sgd", "adam"]
 
@@ -70,7 +74,7 @@ import numpy as np
 from sklearn.neural_network import MLPClassifier
 from typing import Literal
 from sklearn.utils.extmath import safe_sparse_dot
-from sklearn.neural_network._base import ACTIVATIONS
+from sklearn.neural_network._base import ACTIVATIONS, LOSS_FUNCTIONS, DERIVATIVES
 
 class MLPLIB(MLPClassifier):
     def __init__(
@@ -104,55 +108,6 @@ class MLPLIB(MLPClassifier):
         self.seed = seed
         if seed is not None:
             np.random.seed(seed)
-
-    def _initialize(self, y, layer_units, dtype):
-        # set all attributes, allocate weights etc. for first call
-        # Initialize parameters
-        self.n_iter_ = 0
-        self.t_ = 0
-        self.n_outputs_ = y.shape[1]
-
-        # Compute the number of layers
-        self.n_layers_ = len(layer_units)
-
-        # Output for regression
-        if not is_classifier(self):
-            self.out_activation_ = "identity"
-        # Output for multi class
-        elif self._label_binarizer.y_type_ == "multiclass":
-            self.out_activation_ = "softmax"
-        # Output for binary class and multi-label
-        else:
-            self.out_activation_ = "logistic"
-
-        # Initialize coefficient and intercept layers
-        self.coefs_ = []
-        self.intercepts_ = []
-
-        if self.seed is not None:
-            np.random.seed(self.seed)
-
-        for i in range(self.n_layers_ - 1):
-            coef_init, intercept_init = self._init_coef(
-                layer_units[i], layer_units[i + 1], dtype
-            )
-            self.coefs_.append(coef_init)
-            self.intercepts_.append(intercept_init)
-
-        self._best_coefs = [c.copy() for c in self.coefs_]
-        self._best_intercepts = [i.copy() for i in self.intercepts_]
-
-        if self.solver in _STOCHASTIC_SOLVERS:
-            self.loss_curve_ = []
-            self._no_improvement_count = 0
-            if self.early_stopping:
-                self.validation_scores_ = []
-                self.best_validation_score_ = -np.inf
-                self.best_loss_ = None
-            else:
-                self.best_loss_ = np.inf
-                self.validation_scores_ = None
-                self.best_validation_score_ = None
         
     def _init_coef(self, fan_in, fan_out, dtype):
         """Custom weight initialization based on `init_method`."""
@@ -175,42 +130,9 @@ class MLPLIB(MLPClassifier):
         else:
             raise ValueError(f"Unknown init_method: {self.init_method}")
         
-        print("MLPLib coef_init")
-        print(coef_init)
-        print("MLPLib intercept_init")
-        print(intercept_init)
+        # print("MLPLib coef_init")
+        # print(coef_init)
+        # print("MLPLib intercept_init")
+        # print(intercept_init)
         return coef_init, intercept_init
     
-    def _forward_pass(self, activations):
-        """Perform a forward pass on the network by computing the values
-        of the neurons in the hidden layers and the output layer.
-
-        Parameters
-        ----------
-        activations : list, length = n_layers - 1
-            The ith element of the list holds the values of the ith layer.
-        """
-
-        hidden_activation = ACTIVATIONS[self.activation]
-        # Iterate over the hidden layers
-        for i in range(self.n_layers_ - 1):
-            # print(i,"dot")
-            # print(activations[i])
-            # print(self.coefs_[i])
-            activations[i + 1] = safe_sparse_dot(activations[i], self.coefs_[i])
-            # print("dot",activations[i + 1])
-            # print("self.intercepts_[i]", self.intercepts_[i])
-            activations[i + 1] += self.intercepts_[i]
-            # print("activations[i + 1]",activations[i + 1])
-
-            # For the hidden layers
-            if (i + 1) != (self.n_layers_ - 1):
-                hidden_activation(activations[i + 1])
-
-
-        # For the last layer
-        output_activation = ACTIVATIONS[self.out_activation_]
-        output_activation(activations[i + 1])
-
-
-        return activations

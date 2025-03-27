@@ -54,9 +54,9 @@ class WeightInitialization:
         else:
             raise ValueError(f"Unknown init_method: {self.init_method}")
 
-        # print("MLPLib coef_init")
+        # print("weightinit coef_init")
         # print(coef_init)
-        # print("MLPLib intercept_init")
+        # print("weightinit intercept_init")
         # print(intercept_init)
         return coef_init, intercept_init
         

@@ -25,7 +25,7 @@ def model_comparison(sk_mlp: MLPClassifier, custom_mlp: FFNNClassifier, X_train_
     # print("[SKLEARN] Accuracy: ", sk_accuracy)
     # print("[SKLEARN] Weights: ", sk_mlp.coefs_)
     # print("[SKLEARN] Bias: ", sk_mlp.intercepts_)
-    # print(sk_mlp.coefs_[-1])
+    print("weights", sk_mlp.coefs_[-1])
     print()
 
     print("Fitting Custom...")
@@ -40,7 +40,7 @@ def model_comparison(sk_mlp: MLPClassifier, custom_mlp: FFNNClassifier, X_train_
     # print("[CUSTOM] Accuracy: ", custom_accuracy)
     # print("[SKLEARN] Weights: ", custom_mlp.weights_history)
     # print("[SKLEARN] Bias: ", custom_mlp.biases_history[-1])
-    # print(custom_mlp.weights_history[-1])
+    print("weights", custom_mlp.weights_history[-1])
     print()
 
 def one_hot_encode(y, num_classes=10):
@@ -56,11 +56,11 @@ upper_bound=1
 mean=5.39294405e-05
 std=.44
 seed=69
-hidden_layer_sizes=[1]
-max_iter=1
+hidden_layer_sizes=[3,4,5]
+max_iter=3
 init_method="normal"
 learning_rate_init=0.01
-batch_size=1
+batch_size=3
 activation="relu"
 
 # Scikit-learn MLP
