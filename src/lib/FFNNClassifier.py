@@ -131,8 +131,13 @@ class FFNNClassifier:
         if func == "categorical_cross_entropy":
             if y_pred.shape[1] == 1: y_pred = np.append(1 - y_pred, y_pred, axis=1) # case when the target has only 1 column. It should never happens tho but just put it here just in case.
             if y_act.shape[1] == 1: y_act = np.append(1 - y_act, y_act, axis=1)
-
             return -(y_act*np.log(y_pred)).sum() / len(y_pred)
+        elif func == "squared_loss":
+            res = (y_act - y_pred)
+            return (res * res).mean()/2
+        elif func == "binary_cross_entropy":
+            return -((y_act*np.log(y_pred)).sum() + ((1 - y_act)*np.log(1 - y_pred)).sum())/ y_pred.shape[0]
+
         
 
 
