@@ -119,13 +119,15 @@ class MLPLIB(MLPClassifier):
             coef_init = np.random.uniform(self.lower_bound, self.upper_bound, (fan_in, fan_out)).astype(dtype)
             intercept_init = np.random.uniform(self.lower_bound, self.upper_bound, fan_out).astype(dtype)
         elif self.init_method == 'normal':
-            coef_init = np.random.normal(self.mean, self.std, (fan_in, fan_out)).astype(dtype)
             intercept_init = np.random.normal(self.mean, self.std, fan_out).astype(dtype)
+            coef_init = np.random.normal(self.mean, self.std, (fan_in, fan_out)).astype(dtype)
         else:
             raise ValueError(f"Unknown init_method: {self.init_method}")
         
-        # print("MLPLib coef_init")
-        # print(coef_init)
+        print("MLPLib coef_init")
+        print(coef_init)
+        print("MLPLib intercept_init")
+        print(intercept_init)
         return coef_init, intercept_init
     
     def _forward_pass(self, activations):
@@ -138,9 +140,6 @@ class MLPLIB(MLPClassifier):
             The ith element of the list holds the values of the ith layer.
         """
 
-        print("MLPLib coefs_")
-        print(self.coefs_)
-        
         hidden_activation = ACTIVATIONS[self.activation]
         # Iterate over the hidden layers
         for i in range(self.n_layers_ - 1):
@@ -148,7 +147,10 @@ class MLPLIB(MLPClassifier):
             # print(activations[i])
             # print(self.coefs_[i])
             activations[i + 1] = safe_sparse_dot(activations[i], self.coefs_[i])
+            # print("dot",activations[i + 1])
+            # print("self.intercepts_[i]", self.intercepts_[i])
             activations[i + 1] += self.intercepts_[i]
+            # print("activations[i + 1]",activations[i + 1])
 
             # For the hidden layers
             if (i + 1) != (self.n_layers_ - 1):
@@ -158,5 +160,6 @@ class MLPLIB(MLPClassifier):
         # For the last layer
         output_activation = ACTIVATIONS[self.out_activation_]
         output_activation(activations[i + 1])
+
 
         return activations

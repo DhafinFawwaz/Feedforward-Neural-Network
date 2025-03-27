@@ -52,7 +52,6 @@ class FFNNClassifier:
         if len(self.hidden_layer_sizes) != len(self.activation_func) - 1:
             raise Exception("should be len(hidden_layer_sizes) == len(activation_func) - 1")
 
-
     # return [ matrix, matrix, matrix ... ] where matrix is the weight adjacency matrix for each layer. length should be number of layers - 1 because its like the edges/connection between the nodes
     def _generate_initial_weights(self):
         len_features = self._get_amount_of_features()
@@ -210,6 +209,8 @@ class FFNNClassifier:
         print("FFNNClassifier initial_weight")
         print(initial_weight)
         initial_bias = self._generate_initial_biases()
+        print("FFNNClassifier initial_bias")
+        print(initial_bias)
         initial_gradients = [np.zeros_like(w) for w in initial_weight]
         self.weights_history = initial_weight
         self.biases_history = initial_bias
@@ -237,7 +238,11 @@ class FFNNClassifier:
                     # print(h_k_min_1)
                     # print(w_k)
 
+                    # print("dot",np.dot(h_k_min_1, w_k))
+                    # print("b_k",b_k)
                     a_k = b_k + np.dot(h_k_min_1, w_k) # numpy will automatically broadcast b_k (row will be copied to match the result from dot) so that this is addable
+                    # print("a_k")
+                    # print(a_k)
 
                     nodes[k] = a_k
                     nodes_active[k] = FFNNClassifier._activation_function(a_k, self.activation_func[k-1])

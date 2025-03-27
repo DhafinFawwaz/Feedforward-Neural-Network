@@ -37,6 +37,8 @@ class WeightInitiator:
         self.mean = mean
         self.std = std
         self.seed = seed
+        if seed is not None:
+            np.random.seed(seed)
 
 
     def _zero_init(self, neurons_before: int, neurons: int):
@@ -60,7 +62,6 @@ class WeightInitiator:
         if mean is None or std is None:
             raise ValueError("Mean and Standard Deviation must be specified")
         if seed is not None:
-            np.random.seed(seed)
             return np.array([[np.random.normal(mean, std) for _ in range(neurons)] for _ in range(neurons_before)])
         else:
             return np.array([[np.random.normal(mean, std) for _ in range(neurons)] for _ in range(neurons_before)])
@@ -69,7 +70,6 @@ class WeightInitiator:
         if mean is None or std is None:
             raise ValueError("Mean and Standard Deviation must be specified")
         if seed is not None:
-            np.random.seed(seed)
             return np.array([np.random.normal(mean, std) for _ in range(neurons)])
         else:
             return np.array([np.random.normal(mean, std) for _ in range(neurons)])
