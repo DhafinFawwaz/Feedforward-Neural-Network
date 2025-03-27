@@ -3,7 +3,7 @@ import numpy as np
 from numpy.typing import NDArray, ArrayLike
 import pickle
 
-from lib.WeightInitialization import WeightInitiator
+from lib.WeightInitialization import WeightInitialization
 
 class FFNNClassifier:
     def __init__(self,
@@ -49,32 +49,37 @@ class FFNNClassifier:
 
         self.loss_history = np.zeros(max_epoch)
 
+
+
         if len(self.hidden_layer_sizes) != len(self.activation_func) - 1:
             raise Exception("should be len(hidden_layer_sizes) == len(activation_func) - 1")
 
     # return [ matrix, matrix, matrix ... ] where matrix is the weight adjacency matrix for each layer. length should be number of layers - 1 because its like the edges/connection between the nodes
-    def _generate_initial_weights(self):
+    def _generate_initator_weights(self):
+        # if self.seed is not None:
+        #     np.random.seed(self.seed)
         len_features = self._get_amount_of_features()
         layers = np.copy([len_features])
         len_classes = np.array([self._get_number_of_classes()])
         layers = np.append(layers, self.hidden_layer_sizes)
         layers = np.append(layers, len_classes)
         # print("layers:", layers)
-        self.init =  WeightInitiator( 
+        weight_initiator = WeightInitialization(
             init_method=self.init_method,
-            nodes=layers,
+            layer_units=layers,
             lower_bound=self.lower_bound,
             upper_bound=self.upper_bound,
             mean=self.mean,
             std=self.std,
             seed=self.seed
         )
-        return self.init.get_weights()
+        coefs, intercepts = weight_initiator.initialize_weights()
+        return coefs, intercepts
 
     # return [ float, float, float ... ] where float is the bias for each layer. length should be number of layers - 1 because input layer does not have bias
-    def _generate_initial_biases(self):
-        bias = self.init.get_bias()
-        return bias
+    # def _generate_initial_biases(self):
+    #     bias = self.init.get_bias()
+    #     return bias
 
 
 # region functions
@@ -177,6 +182,8 @@ class FFNNClassifier:
 
 
     def fit(self, X: NDArray, y: NDArray):
+        # if self.seed is not None:
+        #     np.random.seed(self.seed)
         if type(y) == list and type(y[0]) != list:
             y = np.array([[i] for i in y])
         if type(y) == list and type(y[0]) == list:
@@ -205,10 +212,11 @@ class FFNNClassifier:
 
         self.X = X
         self.y = y
-        initial_weight = self._generate_initial_weights()
+        coefs, intercepts = self._generate_initator_weights()
+        initial_weight = coefs
         print("FFNNClassifier initial_weight")
         print(initial_weight)
-        initial_bias = self._generate_initial_biases()
+        initial_bias = intercepts
         print("FFNNClassifier initial_bias")
         print(initial_bias)
         initial_gradients = [np.zeros_like(w) for w in initial_weight]
@@ -345,6 +353,8 @@ class FFNNClassifier:
            
 
     def predict(self, X_test: NDArray):
+        if self.seed is not None:
+            np.random.seed(self.seed)
         prediction = np.zeros(len(X_test), dtype=int)
         current_idx = 0
         while current_idx < len(X_test):

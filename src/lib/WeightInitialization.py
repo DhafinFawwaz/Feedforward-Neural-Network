@@ -1,130 +1,104 @@
-"""
-Cara penggunaan:
-init = WeightInitiator(init_method="zero", nodes=np.array([2, 1, 3]), lower_bound=4, upper_bound=7)
-init = WeightInitiator(init_method="uniform", nodes=np.array([2, 1, 3]), lower_bound=4, upper_bound=7)
-init = WeightInitiator(init_method="normal", nodes=np.array([2, 1, 3]), mean=24, std=2, seed=69)
-weights = init.get_weights()
-biases = init.get_bias()
-grad_weight = initiator.get_gradient_weights()
-grad_bias = initiator.get_gradient_bias()
-"""
-
 import numpy as np
-from numpy.typing import NDArray
-from typing import Literal
+import math
+from typing import List, Union, Literal
 
-class WeightInitiator:
+class WeightInitialization:
     def __init__(
-            self, 
-            init_method:Literal["zero","uniform","normal"],
-            nodes:NDArray,
-            # layers: int, 
-            lower_bound: float = 0.0, 
-            upper_bound: float = 1.0, 
-            mean: float = 0.0, 
-            std: float = 1.0, 
-            seed:int = None
-        ) -> None:
-        if nodes is None:
-            raise ValueError("Nodes must be specified")
-        
-        self.layered_weights = []
-        self.bias = []
-        self.nodes = nodes
+        self, 
+        layer_units: List[int],
+        init_method:Literal["uniform", "normal","zero"],
+        lower_bound=5.39294405e-05,
+        upper_bound = 1,
+        mean = 5.39294405e-05,
+        std = .44,
+        seed = 69,
+        dtype: type = np.float64,
+    ):
+        self.layer_units = layer_units
         self.init_method = init_method
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
         self.mean = mean
         self.std = std
         self.seed = seed
-        if seed is not None:
-            np.random.seed(seed)
+        self.dtype = dtype
 
-
-    def _zero_init(self, neurons_before: int, neurons: int):
-        # return np.matrix([[0.0 for _ in range(neurons)] for _ in range(neurons_before)])
-        return np.array([[0.0 for _ in range(neurons)] for _ in range(neurons_before)])
-
-    def _zero_init_bias(self, neurons: int):
-        return np.array([0.0 for _ in range(neurons)])
+        self.coefs_ = []
+        self.intercepts_ = []
     
-    def _uniform_init(self, neurons_before: int, neurons: int, lower_bound: float, upper_bound: float):
-        if lower_bound is None or upper_bound is None:
-            raise ValueError("Lower Bound and Upper Bound must be specified")
-        if lower_bound > upper_bound:
-            raise ValueError("Lower Bound must be less than Upper Bound")
-        return np.array([[np.random.uniform(lower_bound, upper_bound) for _ in range(neurons)] for _ in range(neurons_before)])
-
-    def _uniform_init_bias(self, lower_bound: float, upper_bound: float, neurons: int):
-        return np.array([np.random.uniform(lower_bound, upper_bound) for _ in range(neurons)])
-    
-    def _normal_init(self, neurons_before: int, neurons: int, mean: float, std: float, seed:int = None):
-        if mean is None or std is None:
-            raise ValueError("Mean and Standard Deviation must be specified")
-        if seed is not None:
-            return np.array([[np.random.normal(mean, std) for _ in range(neurons)] for _ in range(neurons_before)])
+    def _init_coef(self, fan_in: int, fan_out: int) -> tuple:
+        """
+        Initialize coefficients and intercepts for a layer
+        
+        Parameters:
+        -----------
+        n_fan_in : int
+            Number of input neurons
+        n_fan_out : int
+            Number of output neurons
+        
+        Returns:
+        --------
+        tuple: (coefficient matrix, intercept vector)
+        """
+        # Determine initialization scale based on activation and fan-in/fan-out
+        if self.init_method == 'zero':
+            coef_init = np.zeros((fan_in, fan_out), dtype=self.dtype)
+            intercept_init = np.zeros(fan_out, dtype=self.dtype)
+        elif self.init_method == 'uniform':
+            coef_init = np.random.uniform(self.lower_bound, self.upper_bound, (fan_in, fan_out)).astype(self.dtype)
+            intercept_init = np.random.uniform(self.lower_bound, self.upper_bound, fan_out).astype(self.dtype)
+        elif self.init_method == 'normal':
+            intercept_init = np.random.normal(self.mean, self.std, fan_out).astype(self.dtype)
+            coef_init = np.random.normal(self.mean, self.std, (fan_in, fan_out)).astype(self.dtype)
         else:
-            return np.array([[np.random.normal(mean, std) for _ in range(neurons)] for _ in range(neurons_before)])
+            raise ValueError(f"Unknown init_method: {self.init_method}")
 
-    def _normal_init_bias(self, neurons: int, mean: float, std: float, seed:int = None):
-        if mean is None or std is None:
-            raise ValueError("Mean and Standard Deviation must be specified")
-        if seed is not None:
-            return np.array([np.random.normal(mean, std) for _ in range(neurons)])
-        else:
-            return np.array([np.random.normal(mean, std) for _ in range(neurons)])
+        print("MLPLib coef_init")
+        print(coef_init)
+        print("MLPLib intercept_init")
+        print(intercept_init)
+        return coef_init, intercept_init
+        
 
-    def get_weights(self):
-        for i in range(len(self.nodes)-1):
-            if self.init_method == "zero":
-                weights = self._zero_init(neurons_before=int(self.nodes[i]), neurons= int(self.nodes[i+1]))
-                self.layered_weights.append(weights)
-            elif self.init_method == "uniform":
-                weights = self._uniform_init(neurons_before=int(self.nodes[i]), neurons= int(self.nodes[i+1]), lower_bound=self.lower_bound, upper_bound=self.upper_bound)
-                self.layered_weights.append(weights)
-            elif self.init_method == "normal":
-                weights = self._normal_init(neurons_before=int(self.nodes[i]), neurons= int(self.nodes[i+1]), mean=self.mean, std=self.std, seed=self.seed)
-                self.layered_weights.append(weights)
-            else:
-                raise ValueError("Invalid Weight Initialization Method")
-        return self.layered_weights
+        return coef, intercept
     
-    def get_bias(self):
-        for i in range(1,len(self.nodes)):
-            if self.init_method == "zero":
-                weights = self._zero_init_bias(neurons=int(self.nodes[i]))
-                self.bias.append(weights)
-            elif self.init_method == "uniform":
-                weights = self._uniform_init_bias(neurons=int(self.nodes[i]), lower_bound=self.lower_bound, upper_bound=self.upper_bound)
-                self.bias.append(weights)
-            elif self.init_method == "normal":
-                weights = self._normal_init_bias(neurons=int(self.nodes[i]), mean=self.mean, std=self.std, seed=self.seed)
-                self.bias.append(weights)
-            else:
-                raise ValueError("Invalid Weight Initialization Method")
-        return self.bias
-    
-    def get_gradient_weights(self):
-        initiator = WeightInitiator(init_method="zero", nodes=self.nodes)
-        return initiator.get_weights()
-    
-    def get_gradient_bias(self):
-        initiator = WeightInitiator(init_method="zero", nodes=self.nodes)
-        return initiator.get_bias()
+    def initialize_weights(self):
+        """
+        Generate weights for all layers
+        
+        Returns:
+        --------
+        tuple: (list of coefficient matrices, list of intercept vectors)
+        """
+        self.coefs_ = []
+        self.intercepts_ = []
 
+        if self.seed is not None:
+            np.random.seed(self.seed)
+
+        for i in range(len(self.layer_units) - 1):
+            coef, intercept = self._init_coef(
+                self.layer_units[i], 
+                self.layer_units[i + 1]
+            )
+            self.coefs_.append(coef)
+            self.intercepts_.append(intercept)
+        
+        return self.coefs_, self.intercepts_
+
+# Example usage
 if __name__ == "__main__":
-    init = WeightInitiator(init_method="zero", nodes=np.array([2, 2, 2]), lower_bound=4, upper_bound=7)
-    # init = WeightInitiator(init_method="uniform", nodes=np.array([2, 1, 3]), lower_bound=4, upper_bound=7)
-    # init = WeightInitiator(init_method="normal", nodes=np.array([2, 1, 3]), mean=24, std=2, seed=69)
-    weights = init.get_weights()
-    biases = init.get_bias()
-
-    for weight in weights:
-        for row in weight:
-            print(row)
-        print("="*50)
-
-    print("="*30 + "BIAS" + "="*30)
-    for bias in biases:
-        print(bias)
-        print("=" * 50)
+    # Example: Initialize weights for a network with layers [2, 10, 5, 3]
+    initiator = WeightInitialization(
+        layer_units=[2, 10, 5, 3],
+        activation='relu'
+    )
+    
+    coefs, intercepts = initiator.initialize_weights()
+    
+    # Print details of initialized weights
+    for i, (coef, intercept) in enumerate(zip(coefs, intercepts), 1):
+        print(f"Layer {i} Coefficient Shape: {coef.shape}")
+        print(f"Layer {i} Intercept Shape: {intercept.shape}")
+        print("-" * 40)
