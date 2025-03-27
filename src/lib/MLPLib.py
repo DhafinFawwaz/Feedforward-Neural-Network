@@ -124,7 +124,8 @@ class MLPLIB(MLPClassifier):
         else:
             raise ValueError(f"Unknown init_method: {self.init_method}")
         
-        print(coef_init)
+        # print("MLPLib coef_init")
+        # print(coef_init)
         return coef_init, intercept_init
     
     def _forward_pass(self, activations):
@@ -136,6 +137,9 @@ class MLPLIB(MLPClassifier):
         activations : list, length = n_layers - 1
             The ith element of the list holds the values of the ith layer.
         """
+
+        print("MLPLib coefs_")
+        print(self.coefs_)
         
         hidden_activation = ACTIVATIONS[self.activation]
         # Iterate over the hidden layers

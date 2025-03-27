@@ -207,6 +207,7 @@ class FFNNClassifier:
         self.X = X
         self.y = y
         initial_weight = self._generate_initial_weights()
+        print("FFNNClassifier initial_weight")
         print(initial_weight)
         initial_bias = self._generate_initial_biases()
         initial_gradients = [np.zeros_like(w) for w in initial_weight]

@@ -16,8 +16,8 @@ def model_comparison(sk_mlp: MLPClassifier, custom_mlp: FFNNClassifier, X_train_
     # print(dir(sk_mlp))
     # return
     if not is_weight:
-        print("X_train_scaled:",X_train_scaled)
-        print("y_train:",y_train)
+        # print("X_train_scaled:",X_train_scaled)
+        # print("y_train:",y_train)
         sk_mlp.fit(X_train_scaled, y_train)
     # sk_pred = sk_mlp.predict(X_test_scaled)
     # sk_accuracy = accuracy_score(y_test, sk_pred)
@@ -25,13 +25,13 @@ def model_comparison(sk_mlp: MLPClassifier, custom_mlp: FFNNClassifier, X_train_
     # print("[SKLEARN] Accuracy: ", sk_accuracy)
     # print("[SKLEARN] Weights: ", sk_mlp.coefs_)
     # print("[SKLEARN] Bias: ", sk_mlp.intercepts_)
-    print(sk_mlp.coefs_[-1])
+    # print(sk_mlp.coefs_[-1])
     print()
 
     print("Fitting Custom...")
     if not is_weight:
-        print("X_train_scaled:",X_train_scaled)
-        print("y_train_one_hot:",y_train_one_hot)
+        # print("X_train_scaled:",X_train_scaled)
+        # print("y_train_one_hot:",y_train_one_hot)
         custom_mlp.fit(X_train_scaled, y_train_one_hot)
     # custom_pred = custom_mlp.predict(X_test_scaled)
     # y_test_labels = np.argmax(y_test_one_hot, axis=1)
@@ -40,7 +40,7 @@ def model_comparison(sk_mlp: MLPClassifier, custom_mlp: FFNNClassifier, X_train_
     # print("[CUSTOM] Accuracy: ", custom_accuracy)
     # print("[SKLEARN] Weights: ", custom_mlp.weights_history)
     # print("[SKLEARN] Bias: ", custom_mlp.biases_history[-1])
-    print(custom_mlp.weights_history[-1])
+    # print(custom_mlp.weights_history[-1])
     print()
 
 def one_hot_encode(y, num_classes=10):
@@ -58,7 +58,7 @@ std=.44
 seed=69
 hidden_layer_sizes=[1]
 max_iter=1
-init_method="normal"
+init_method="uniform"
 learning_rate_init=0.01
 batch_size=1
 activation="relu"

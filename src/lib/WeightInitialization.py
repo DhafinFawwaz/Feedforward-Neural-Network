@@ -9,7 +9,6 @@ grad_weight = initiator.get_gradient_weights()
 grad_bias = initiator.get_gradient_bias()
 """
 
-import random
 import numpy as np
 from numpy.typing import NDArray
 from typing import Literal
@@ -52,28 +51,28 @@ class WeightInitiator:
             raise ValueError("Lower Bound and Upper Bound must be specified")
         if lower_bound > upper_bound:
             raise ValueError("Lower Bound must be less than Upper Bound")
-        return np.array([[random.uniform(lower_bound, upper_bound) for _ in range(neurons)] for _ in range(neurons_before)])
+        return np.array([[np.random.uniform(lower_bound, upper_bound) for _ in range(neurons)] for _ in range(neurons_before)])
 
     def _uniform_init_bias(self, lower_bound: float, upper_bound: float, neurons: int):
-        return np.array([random.uniform(lower_bound, upper_bound) for _ in range(neurons)])
+        return np.array([np.random.uniform(lower_bound, upper_bound) for _ in range(neurons)])
     
     def _normal_init(self, neurons_before: int, neurons: int, mean: float, std: float, seed:int = None):
         if mean is None or std is None:
             raise ValueError("Mean and Standard Deviation must be specified")
         if seed is not None:
-            random.seed(seed)
-            return np.array([[random.gauss(mean, std) for _ in range(neurons)] for _ in range(neurons_before)])
+            np.random.seed(seed)
+            return np.array([[np.random.normal(mean, std) for _ in range(neurons)] for _ in range(neurons_before)])
         else:
-            return np.array([[random.gauss(mean, std) for _ in range(neurons)] for _ in range(neurons_before)])
+            return np.array([[np.random.normal(mean, std) for _ in range(neurons)] for _ in range(neurons_before)])
 
     def _normal_init_bias(self, neurons: int, mean: float, std: float, seed:int = None):
         if mean is None or std is None:
             raise ValueError("Mean and Standard Deviation must be specified")
         if seed is not None:
-            random.seed(seed)
-            return np.array([random.gauss(mean, std) for _ in range(neurons)])
+            np.random.seed(seed)
+            return np.array([np.random.normal(mean, std) for _ in range(neurons)])
         else:
-            return np.array([random.gauss(mean, std) for _ in range(neurons)])
+            return np.array([np.random.normal(mean, std) for _ in range(neurons)])
 
     def get_weights(self):
         for i in range(len(self.nodes)-1):
