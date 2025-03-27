@@ -5,7 +5,6 @@ import pickle
 
 from lib.WeightInitialization import WeightInitiator
 
-
 class FFNNClassifier:
     def __init__(self,
             hidden_layer_sizes: NDArray,
@@ -14,7 +13,7 @@ class FFNNClassifier:
             verbose: int = 0, # 0: no print, 1: print epoch progress
             max_epoch: int = 50,
             batch_size: int = 256,
-            loss_func: Literal['mean_squared_error', 'binary_cross_entropy', 'categorical_cross_entropy'] = 'mean_squared_error',
+            loss_func: Literal['mean_squared_error', 'binary_cross_entropy', 'categorical_cross_entropy'] = 'categorical_cross_entropy',
             init_method: Literal['normal', 'zero', 'uniform'] = 'zero',
             lower_bound: float = 0.0,
             upper_bound: float = 1.0,
@@ -120,7 +119,7 @@ class FFNNClassifier:
         elif func == 'binary_cross_entropy': 
             return (y_pred - y_act)/(y_pred*(1 - y_pred)) * len(y_act[0]) # len(y_act[0]) can actually be ignored because we have learning rate
         elif func == 'categorical_cross_entropy': 
-            return (y_pred - y_act) / len(y_act[0]) # len(y_act[0]) can actually be ignored because we have learning rate
+            return (y_pred - y_act) # len(y_act[0]) can actually be ignored because we have learning rate
         
 
 
@@ -168,7 +167,8 @@ class FFNNClassifier:
     # Can only be called after setting X and y
     def _get_number_of_classes(self):
         # return len(np.unique(self.y))
-        return 10 # hardcoded because it messes up things when the possible value is not much
+        # return 10 # hardcoded because it messes up things when the possible value is not much
+        return len(self.y[0])
 
     def copy_list_as_zeros(self, list: list[NDArray]):
         return [np.zeros_like(w) for w in list]
@@ -207,6 +207,7 @@ class FFNNClassifier:
         self.X = X
         self.y = y
         initial_weight = self._generate_initial_weights()
+        print(initial_weight)
         initial_bias = self._generate_initial_biases()
         initial_gradients = [np.zeros_like(w) for w in initial_weight]
         self.weights_history = initial_weight
@@ -215,7 +216,6 @@ class FFNNClassifier:
 
         layer_sizes = self._get_hidden_layer_sizes()
         network_depth = len(layer_sizes)
-        number_of_classes = self._get_number_of_classes()
 
         for epoch in range(self.epoch_amount):
             # for current_dataset_idx in range(len(self.X)):
@@ -232,6 +232,9 @@ class FFNNClassifier:
                     w_k = self.weights_history[k-1]
                     b_k = self.biases_history[k-1]
                     h_k_min_1 = nodes_active[k-1]
+                    # print(k,"dot")
+                    # print(h_k_min_1)
+                    # print(w_k)
 
                     a_k = b_k + np.dot(h_k_min_1, w_k) # numpy will automatically broadcast b_k (row will be copied to match the result from dot) so that this is addable
 
@@ -306,7 +309,7 @@ class FFNNClassifier:
 
 
             if self.verbose == 1:
-                print(f"Epoch {epoch+1}/{self.epoch_amount} done")
+                print(f"Epoch {epoch+1}/{self.epoch_amount} done, loss: {self.loss_history[-1].mean()}")
             elif self.verbose == 2:
                 print(f"========================================")
                 print(f"Epoch {epoch+1}/{self.epoch_amount} done")
@@ -324,7 +327,7 @@ class FFNNClassifier:
     @staticmethod
     def preprocess_y(y):
         def one_hot_encode(y, num_of_classes = 10):
-            arr = np.zeros((len(y), num_of_classes))
+            arr = np.zeros((len(y), num_of_classes), dtype=int)
             for i in range(len(y)):
                 arr[i][int(y[i])] = 1
             return arr

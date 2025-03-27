@@ -30,10 +30,10 @@ print(y_test_original.shape)
 
 print("Starting with MLPClassifier...")
 clf = MLPClassifier(
-    random_state=1, 
-    max_iter=15,
     hidden_layer_sizes=(16, 8, 4),
-    batch_size=1
+    max_iter=15,
+    batch_size=1,
+    random_state=1, 
     ).fit(X_train, y_train_original)
 prediction = clf.predict(X_test)
 print(prediction)
@@ -44,12 +44,12 @@ print("Accuracy:", calculate_accuracy(prediction, y_test_original) * 100, "%")
 print("Starting with FFNNClassifier...")
 ffnn = FFNNClassifier(
     hidden_layer_sizes=(16, 8, 4),
-    activation_func=["sigmoid", "sigmoid", "sigmoid", "sigmoid"],
+    activation_func=["sigmoid", "sigmoid", "sigmoid", "softmax"],
     learning_rate=0.01,
     verbose=False,
     max_epoch=15,
     batch_size=1,
-    loss_func="mean_squared_error",
+    loss_func="categorical_cross_entropy",
     init_method="normal",
     lower_bound=-1,
     upper_bound=1,

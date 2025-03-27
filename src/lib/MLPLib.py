@@ -67,6 +67,8 @@ for weight_config in weight_configs:
 import numpy as np
 from sklearn.neural_network import MLPClassifier
 from typing import Literal
+from sklearn.utils.extmath import safe_sparse_dot
+from sklearn.neural_network._base import ACTIVATIONS
 
 class MLPLIB(MLPClassifier):
     def __init__(
@@ -79,7 +81,19 @@ class MLPLIB(MLPClassifier):
         seed: int = None,
         **kwargs
     ):
-        super().__init__(**kwargs)
+        
+        super().__init__(
+            **kwargs, 
+            shuffle=False,
+            alpha=0.0,
+            solver='sgd',
+            momentum=0.0,
+            nesterovs_momentum=False,
+            early_stopping=False,
+            learning_rate='constant',
+            random_state=seed,
+            verbose=True
+        )
         self.init_method = init_method
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
@@ -88,7 +102,7 @@ class MLPLIB(MLPClassifier):
         self.seed = seed
         if seed is not None:
             np.random.seed(seed)
-
+        
     def _init_coef(self, fan_in, fan_out, dtype):
         """Custom weight initialization based on `init_method`."""
         if self.activation == 'logistic':
@@ -109,5 +123,36 @@ class MLPLIB(MLPClassifier):
             intercept_init = np.random.normal(self.mean, self.std, fan_out).astype(dtype)
         else:
             raise ValueError(f"Unknown init_method: {self.init_method}")
-
+        
+        print(coef_init)
         return coef_init, intercept_init
+    
+    def _forward_pass(self, activations):
+        """Perform a forward pass on the network by computing the values
+        of the neurons in the hidden layers and the output layer.
+
+        Parameters
+        ----------
+        activations : list, length = n_layers - 1
+            The ith element of the list holds the values of the ith layer.
+        """
+        
+        hidden_activation = ACTIVATIONS[self.activation]
+        # Iterate over the hidden layers
+        for i in range(self.n_layers_ - 1):
+            # print(i,"dot")
+            # print(activations[i])
+            # print(self.coefs_[i])
+            activations[i + 1] = safe_sparse_dot(activations[i], self.coefs_[i])
+            activations[i + 1] += self.intercepts_[i]
+
+            # For the hidden layers
+            if (i + 1) != (self.n_layers_ - 1):
+                hidden_activation(activations[i + 1])
+
+
+        # For the last layer
+        output_activation = ACTIVATIONS[self.out_activation_]
+        output_activation(activations[i + 1])
+
+        return activations

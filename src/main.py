@@ -154,6 +154,9 @@ def predict_or_save(args, X_path, y_path):
     print("X_test shape:", X_test.shape)
     print("y_test shape:", y_test.shape)
 
+    print(y_train)
+    print(y_test)
+
     ffnn = FFNNClassifier(
         hidden_layer_sizes=args.hidden_layer_sizes,
         activation_func=args.activation_func,
