@@ -106,9 +106,56 @@ class MLPLIB(MLPClassifier):
         self.mean = mean
         self.std = std
         self.seed = seed
-        if seed is not None:
-            np.random.seed(seed)
- 
+
+    def _initialize(self, y, layer_units, dtype):
+        # set all attributes, allocate weights etc. for first call
+        # Initialize parameters
+        self.n_iter_ = 0
+        self.t_ = 0
+        self.n_outputs_ = y.shape[1]
+
+        # Compute the number of layers
+        self.n_layers_ = len(layer_units)
+
+        # Output for regression
+        if not is_classifier(self):
+            self.out_activation_ = "identity"
+        # Output for multi class
+        elif self._label_binarizer.y_type_ == "multiclass":
+            self.out_activation_ = "softmax"
+        # Output for binary class and multi-label
+        else:
+            self.out_activation_ = "logistic"
+
+        # Initialize coefficient and intercept layers
+        self.coefs_ = []
+        self.intercepts_ = []
+
+        if self.seed is not None:
+            np.random.seed(self.seed)
+
+        for i in range(self.n_layers_ - 1):
+            coef_init, intercept_init = self._init_coef(
+                layer_units[i], layer_units[i + 1], dtype
+            )
+            self.coefs_.append(coef_init)
+            self.intercepts_.append(intercept_init)
+
+        self._best_coefs = [c.copy() for c in self.coefs_]
+        self._best_intercepts = [i.copy() for i in self.intercepts_]
+
+        if self.solver in _STOCHASTIC_SOLVERS:
+            self.loss_curve_ = []
+            self._no_improvement_count = 0
+            if self.early_stopping:
+                self.validation_scores_ = []
+                self.best_validation_score_ = -np.inf
+                self.best_loss_ = None
+            else:
+                self.best_loss_ = np.inf
+                self.validation_scores_ = None
+                self.best_validation_score_ = None
+        
     def _init_coef(self, fan_in, fan_out, dtype):
         """Custom weight initialization based on `init_method`."""
         if self.activation == 'logistic':
@@ -129,7 +176,6 @@ class MLPLIB(MLPClassifier):
             coef_init = np.random.normal(self.mean, self.std, (fan_in, fan_out)).astype(dtype)
         else:
             raise ValueError(f"Unknown init_method: {self.init_method}")
-        
         # print("MLPLib coef_init")
         # print(coef_init)
         # print("MLPLib intercept_init")
@@ -153,9 +199,6 @@ class MLPLIB(MLPClassifier):
         hidden_activation = ACTIVATIONS[self.activation]
         # Iterate over the hidden layers
         for i in range(self.n_layers_ - 1):
-            # print("dot")
-            # print(activations[i])
-            # print(self.coefs_[i])
             activations[i + 1] = safe_sparse_dot(activations[i], self.coefs_[i])
             activations[i + 1] += self.intercepts_[i]
 
@@ -168,7 +211,7 @@ class MLPLIB(MLPClassifier):
         output_activation = ACTIVATIONS[self.out_activation_]
         output_activation(activations[i + 1])
 
-        # print(activations[-1][-1])
+
         return activations
 
 
@@ -211,19 +254,13 @@ class MLPLIB(MLPClassifier):
         n_samples = X.shape[0]
 
         # Forward propagate
-        print(self.coefs_)
         activations = self._forward_pass(activations)
-        # print(activations[-1])
 
         # Get loss
         loss_func_name = self.loss
         if loss_func_name == "log_loss" and self.out_activation_ == "logistic":
             loss_func_name = "binary_log_loss"
         loss = LOSS_FUNCTIONS[loss_func_name](y, activations[-1])
-        # print("y_act", y)
-        # print("y_pred", activations[-1])
-        # print("loss", loss)
-
         # Add L2 regularization term to loss
         values = 0
         for s in self.coefs_:
@@ -244,6 +281,9 @@ class MLPLIB(MLPClassifier):
         self._compute_loss_grad(
             last, n_samples, activations, deltas, coef_grads, intercept_grads
         )
+        # print(coef_grads[self.n_layers_ - 2].dtype)
+        # print("last",last)
+        # print(coef_grads[self.n_layers_ - 2])
 
         inplace_derivative = DERIVATIVES[self.activation]
         # Iterate over the hidden layers
@@ -256,7 +296,6 @@ class MLPLIB(MLPClassifier):
             )
             # print(i-1, coef_grads[i-1])
 
-        # print(coef_grads)
         # print(intercept_grads)
         return loss, coef_grads, intercept_grads
     
@@ -371,9 +410,14 @@ class MLPLIB(MLPClassifier):
                         coef_grads,
                         intercept_grads,
                     )
+                    # print("batch_loss",batch_loss)
                     accumulated_loss += batch_loss * (
                         batch_slice.stop - batch_slice.start
                     )
+                    # print("accumulated_loss")
+                    # print(accumulated_loss)
+                    # print(batch_slice.stop)
+                    # print(batch_slice.start)
 
                     # update weights
                     grads = coef_grads + intercept_grads
@@ -385,6 +429,7 @@ class MLPLIB(MLPClassifier):
 
                 self.n_iter_ += 1
                 self.loss_ = accumulated_loss / X.shape[0]
+                # print("X.shape[0]", X.shape[0])
 
                 self.t_ += n_samples
                 self.loss_curve_.append(self.loss_)

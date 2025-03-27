@@ -49,7 +49,7 @@ class FFNNClassifier:
 
         self.amount_of_features = -1
 
-        self.loss_history = np.zeros(max_epoch)
+        self.loss_history = np.zeros(max_epoch, dtype="float32")
 
 
 
@@ -62,7 +62,7 @@ class FFNNClassifier:
         #     np.random.seed(self.seed)
         len_features = self._get_amount_of_features()
         layers = np.copy([len_features])
-        len_classes = np.array([self._get_number_of_classes()])
+        len_classes = np.array([self._get_number_of_classes()], dtype="int32")
         layers = np.append(layers, self.hidden_layer_sizes)
         layers = np.append(layers, len_classes)
         # print("layers:", layers)
@@ -99,7 +99,7 @@ class FFNNClassifier:
 
     @staticmethod
     def _activation_derived_function(x: Union[float, NDArray], func: str):
-        if func == 'linear': return np.ones_like(x)
+        if func == 'linear': return np.ones_like(x, dtype="float32")
         elif func == 'relu': return np.where(x > 0, 1, 0)
         elif func == 'sigmoid':
             sig = FFNNClassifier._activation_function(x, 'sigmoid')
@@ -109,7 +109,7 @@ class FFNNClassifier:
             return p*p  
         elif func == 'softmax':
             batch_size, n = x.shape
-            jacobians = np.zeros((batch_size, n, n))
+            jacobians = np.zeros((batch_size, n, n), dtype="float32")
 
             for i in range(batch_size):
                 s = x[i].reshape(-1, 1)
@@ -138,10 +138,14 @@ class FFNNClassifier:
             if y_pred.shape[1] == 1: y_pred = np.append(1 - y_pred, y_pred, axis=1) # case when the target has only 1 column. It should never happens tho but just put it here just in case.
             if y_act.shape[1] == 1: y_act = np.append(1 - y_act, y_act, axis=1)
             # return -(y_act*np.log(y_pred)).sum() / len(y_pred)
+
+            # print("_loss_function")
+            # print(y_pred)
             # print(-xlogy(y_act, y_pred))
             # print(-xlogy(y_act, y_pred).sum())
             # print(y_pred.shape[0])
             # print(-xlogy(y_act, y_pred).sum() / y_pred.shape[0])
+
             return -xlogy(y_act, y_pred).sum() / y_pred.shape[0]
 
         elif func == "squared_loss":
@@ -167,7 +171,7 @@ class FFNNClassifier:
 
         len_features = self._get_amount_of_features()
         len_classes = self._get_number_of_classes()
-        layer_sizes = np.zeros(len(self.hidden_layer_sizes)+2, dtype=int)
+        layer_sizes = np.zeros(len(self.hidden_layer_sizes)+2, dtype="int32")
         layer_sizes[0] = len_features
         for i in range(1, len(self.hidden_layer_sizes)+1):
             layer_sizes[i] = self.hidden_layer_sizes[i-1]
@@ -185,11 +189,11 @@ class FFNNClassifier:
         nodes = []
         nodes_active = []
         for i in range(network_depth-1):
-            weights.append(np.zeros((layer_sizes[i], layer_sizes[i+1])))
-            biases.append(np.zeros(layer_sizes[i+1]))
+            weights.append(np.zeros((layer_sizes[i], layer_sizes[i+1]), dtype="float32"))
+            biases.append(np.zeros(layer_sizes[i+1], dtype="float32"))
         for i in range(network_depth):
-            nodes.append(np.zeros(layer_sizes[i]))
-            nodes_active.append(np.zeros(layer_sizes[i]))
+            nodes.append(np.zeros(layer_sizes[i], dtype="float32"))
+            nodes_active.append(np.zeros(layer_sizes[i], dtype="float32"))
 
         return weights, nodes, nodes_active, biases
 
@@ -211,9 +215,9 @@ class FFNNClassifier:
         # if self.seed is not None:
         #     np.random.seed(self.seed)
         if type(y) == list and type(y[0]) != list:
-            y = np.array([[i] for i in y])
+            y = np.array([[i] for i in y], dtype="int32")
         if type(y) == list and type(y[0]) == list:
-            y = np.array(y)
+            y = np.array(y, dtype="int32")
 
         if len(X) != len(y):
             raise Exception("length of X and y is not the same")
@@ -236,8 +240,8 @@ class FFNNClassifier:
         self.loss_history = []
 
 
-        self.X = X
-        self.y = y
+        self.X = X.astype("float32")
+        self.y = y.astype("int32")
         coefs, intercepts = self._generate_initator_weights()
         initial_weight = coefs
         # print("FFNNClassifier initial_weight")
@@ -245,9 +249,9 @@ class FFNNClassifier:
         initial_bias = intercepts
         # print("FFNNClassifier initial_bias")
         # print(initial_bias)
-        initial_gradients = [np.zeros_like(w) for w in initial_weight]
+        initial_gradients = [np.zeros_like(w, dtype="float32") for w in initial_weight]
         self.weights_history = initial_weight
-        print(initial_weight)
+        # print(initial_weight)
         self.biases_history = initial_bias
         self.weight_gradients_history = initial_gradients
 
@@ -256,6 +260,7 @@ class FFNNClassifier:
 
 
         for epoch in range(self.epoch_amount):
+            total_loss = 0
             # for current_dataset_idx in range(len(self.X)):
             current_dataset_idx = 0
             while current_dataset_idx < len(self.X):
@@ -300,6 +305,7 @@ class FFNNClassifier:
                     func=self.loss_func
                 )
                 # print("loss", loss)
+                total_loss += loss * (until_idx - current_dataset_idx)
 
                 # print("self.y[current_dataset_idx:until_idx]: ", self.y[current_dataset_idx:until_idx])
                 # print("nodes_active[network_depth-1]: ", nodes_active[network_depth-1])
@@ -318,7 +324,11 @@ class FFNNClassifier:
 
                 delta = 0
                 if (self.activation_func[-1] == 'softmax' and self.loss_func == 'categorical_cross_entropy') or (self.activation_func[-1] == "sigmoid" and self.loss_func == 'binary_cross_entropy') or (self.activation_func[-1] == "linear" and self.loss_func == 'mean_squared_error'):
-                    delta = nodes_active[-1] - self.y[current_dataset_idx:until_idx]
+                    delta = (nodes_active[-1] - self.y[current_dataset_idx:until_idx]).astype("float32")
+                    # print("nodes_active[-1].dtype")
+                    # print(nodes_active[-1].dtype)
+                    # print(self.y[current_dataset_idx:until_idx].dtype)
+                    # print(delta.dtype)
 
                 elif self.activation_func[-1] == 'softmax' and self.loss_func != 'categorical_cross_entropy':
                     jacobians = FFNNClassifier._activation_derived_function(nodes[-1], self.activation_func[-1])
@@ -340,7 +350,12 @@ class FFNNClassifier:
 
                 # print("delta:",delta)
 
-                weight_gradiens[network_depth-2] = nodes_active[k-1].T @ delta / self.X.shape[0]
+                # print(nodes_active[k-1].T.dtype)
+                # print(delta.dtype)
+                weight_gradiens[network_depth-2] = nodes_active[k-1].T @ delta / self.batch_size
+                # print(weight_gradiens[network_depth-2].dtype)
+                # print("current_dataset_idx:", current_dataset_idx)
+                # print(weight_gradiens[network_depth-2])
                 # bias_gradiens[network_depth-2] = -delta
                 bias_gradiens[network_depth-2] = np.mean(delta, axis=0, keepdims=True)
 
@@ -387,9 +402,11 @@ class FFNNClassifier:
                 current_dataset_idx += self.batch_size
             #### while loop ends here ##############################################
 
-
+            current_loss = total_loss / len(self.X)
             if self.verbose == 1:
-                print(f"Epoch {epoch+1}/{self.epoch_amount} done, loss: {loss}")
+                print(f"Epoch {epoch+1}/{self.epoch_amount} done, loss: {current_loss}")
+                # print("Epoch %d/%d done, loss: %.8f" % (epoch+1, self.epoch_amount, current_loss))
+
             elif self.verbose == 2:
                 print(f"========================================")
                 print(f"Epoch {epoch+1}/{self.epoch_amount} done")
@@ -407,7 +424,7 @@ class FFNNClassifier:
     @staticmethod
     def preprocess_y(y):
         def one_hot_encode(y, num_of_classes = 10):
-            arr = np.zeros((len(y), num_of_classes), dtype=int)
+            arr = np.zeros((len(y), num_of_classes), dtype="int32")
             for i in range(len(y)):
                 arr[i][int(y[i])] = 1
             return arr

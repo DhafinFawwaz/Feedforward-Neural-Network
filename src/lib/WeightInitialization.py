@@ -12,7 +12,7 @@ class WeightInitialization:
         mean = 5.39294405e-05,
         std = .44,
         seed = 69,
-        dtype: type = np.float64,
+        dtype: type = "float32", # becase MLPClassifier uses float32
     ):
         self.layer_units = layer_units
         self.init_method = init_method
