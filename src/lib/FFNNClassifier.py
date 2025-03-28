@@ -49,7 +49,7 @@ class FFNNClassifier:
 
         self.amount_of_features = -1
 
-        self.loss_history = np.zeros(max_epoch, dtype="float32")
+        self.loss_history = []
 
 
 
@@ -78,19 +78,12 @@ class FFNNClassifier:
         coefs, intercepts = weight_initiator.initialize_weights()
         return coefs, intercepts
 
-    # return [ float, float, float ... ] where float is the bias for each layer. length should be number of layers - 1 because input layer does not have bias
-    # def _generate_initial_biases(self):
-    #     bias = self.init.get_bias()
-    #     return bias
-
-
 # region functions
     @staticmethod
     def _activation_function(x: Union[float, NDArray], func: str):
         if func == 'linear': return x
         elif func == 'relu': return np.maximum(0, x)
-        # elif func == 'sigmoid': return 1.0/(1.0 + np.exp(-x))
-        elif func == 'sigmoid': return expit(x)
+        elif func == 'sigmoid': return 1.0/(1.0 + np.exp(-x))
         elif func == 'tanh': return np.tanh(x)
         elif func == 'softmax':
             exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
@@ -156,7 +149,7 @@ class FFNNClassifier:
 
             return -xlogy(y_act, y_pred).sum() / y_pred.shape[0]
 
-        elif func == "squared_loss":
+        elif func == "mean_squared_error":
             res = (y_act - y_pred)
             return (res * res).mean()/2
         elif func == "binary_cross_entropy":

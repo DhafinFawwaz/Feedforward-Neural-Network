@@ -71,12 +71,12 @@ parser.add_argument('--plot_type', type=str, default="histogram")
 
 parser.add_argument('--test_size', type=float, default=0.1)
 parser.add_argument('--hidden_layer_sizes', type=int, nargs='+', default=[256, 128, 64])
-parser.add_argument('--activation_func', nargs='+', default=["sigmoid", "sigmoid", "sigmoid", "sigmoid"])
+parser.add_argument('--activation_func', nargs='+', default=["sigmoid", "sigmoid", "sigmoid", "softmax"])
 parser.add_argument('--learning_rate', type=float, default=0.05)
 parser.add_argument('--verbose', type=int, default=1)
 parser.add_argument('--max_epoch', type=int, default=15)
 parser.add_argument('--batch_size', type=int, default=50)
-parser.add_argument('--loss_func', type=str, default="mean_squared_error")
+parser.add_argument('--loss_func', type=str, default="categorical_cross_entropy")
 parser.add_argument('--init_method', type=str, default="normal")
 parser.add_argument('--lower_bound', type=float, default=5.39294405e-05)
 parser.add_argument('--upper_bound', type=float, default=1)
@@ -253,6 +253,7 @@ if args.accuracy:
 if args.plot_network:
     model_path = args.plot_network[0]
     ffnn = FFNNClassifier.load(model_path)
+    print([w.shape for w in ffnn.weights_history])
     nnv = get_visualizer(ffnn)
     nnv.plot_network()
 
