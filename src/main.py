@@ -6,6 +6,7 @@ from lib.Utils import load_mnist_dataset, train_test_split, calculate_accuracy, 
 import argparse
 import time
 from lib.NeuralNetworkVisualizer import NeuralNetworkVisualizer
+from lib.NeuralNetworkVisualizerPlotly import NeuralNetworkVisualizerPlotly
 
 parser = argparse.ArgumentParser()
 parser = argparse.ArgumentParser(description="FFNNClassifier")
@@ -190,7 +191,7 @@ def get_visualizer(ffnn: FFNNClassifier):
     weights = ffnn.weights_history
     biases = ffnn.biases_history
     weight_gradients = ffnn.weight_gradients_history
-    nnv = NeuralNetworkVisualizer(
+    nnv = NeuralNetworkVisualizerPlotly(
         layers=layers,
         weights=weights,
         gradients=weight_gradients,
