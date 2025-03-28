@@ -299,7 +299,7 @@ class FFNNClassifier:
                 for v in self.weights_history:
                     flat = v.ravel()
                     total_l2 += np.dot(flat, flat)
-                loss += (0.5 * self.l2) * total_l2 / self.batch_size 
+                loss += (0.5 * self.l2) * total_l2 / self.batch_size
 
 
                 # L1 regularization
@@ -341,10 +341,10 @@ class FFNNClassifier:
                     # delta = loss_grad * FFNNClassifier._activation_derived_function(nodes[-1], self.activation_func[-1])
                     delta = (nodes_active[-1] - self.y[current_dataset_idx:until_idx]).astype("float32")
 
-                    weight_gradiens[network_depth-2] = nodes_active[k-1].T @ delta
-                    weight_gradiens[network_depth-2] += self.l2 * self.weights_history[network_depth-2] # L2 regularization
-                    weight_gradiens[network_depth-2] += self.l1 * np.sign(self.weights_history[network_depth-2]) # L1 regularization
-                    weight_gradiens[network_depth-2] /= self.batch_size
+                weight_gradiens[network_depth-2] = nodes_active[k-1].T @ delta
+                weight_gradiens[network_depth-2] += self.l2 * self.weights_history[network_depth-2] # L2 regularization
+                weight_gradiens[network_depth-2] += self.l1 * np.sign(self.weights_history[network_depth-2]) # L1 regularization
+                weight_gradiens[network_depth-2] /= self.batch_size
 
 
                 bias_gradiens[network_depth-2] = np.mean(delta, axis=0, keepdims=True)
