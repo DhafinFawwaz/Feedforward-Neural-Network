@@ -374,7 +374,7 @@ class FFNNClassifier:
                 print(f"weights: {self.weights_history}")
                 print(f"biases: {self.biases_history}")
 
-        return self.loss_history
+        return self.loss_history, self.validation_loss_history
 
     @staticmethod
     def preprocess_x(X):
