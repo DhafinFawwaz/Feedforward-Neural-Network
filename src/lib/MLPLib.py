@@ -21,6 +21,7 @@ class MLPLIB(MLPClassifier):
         mean: float = 0.0,
         std: float = 1.0,
         seed: int = None,
+        verbose: bool = True,
         **kwargs
     ):
         
@@ -34,7 +35,7 @@ class MLPLIB(MLPClassifier):
             early_stopping=False,
             learning_rate='constant',
             random_state=seed,
-            verbose=True
+            verbose=verbose
         )
         self.init_method = init_method
         self.lower_bound = lower_bound
