@@ -265,7 +265,7 @@ if args.plot_network:
     model_path = args.plot_network[0]
     ffnn = FFNNClassifier.load(model_path)
     nnv = get_visualizer(ffnn)
-    nnv.plot_network_parallel()
+    nnv.plot_network()
 
 if args.plot_weights:
     model_path = args.plot_weights[0]
