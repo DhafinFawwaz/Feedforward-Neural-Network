@@ -1,0 +1,187 @@
+import plotly.graph_objects as go
+import numpy as np
+import seaborn as sns
+
+class NeuralNetworkVisualizerPlotly:
+    def __init__(self, layers, weights, gradients, biases):
+        self.layers = layers
+        self.weights = weights
+        self.gradients = gradients
+        self.biases = biases
+        self.colors = sns.color_palette("husl", len(layers))
+        self.layer_names = self._generate_layer_names()
+    
+    def _generate_layer_names(self):
+        layer_names = ['Input Layer']
+        for i in range(1, len(self.layers) - 1):
+            layer_names.append(f'Hidden Layer {i}')
+        layer_names.append('Output Layer')
+        return layer_names
+    
+    def plot_network(self):
+        fig = go.Figure()
+        
+        x_positions = np.linspace(0, 1, len(self.layers))
+        y_positions = [np.linspace(-1, 1, num_nodes) for num_nodes in self.layers]
+        
+        node_positions = {}
+
+        for layer_idx, (x, y_vals) in enumerate(zip(x_positions, y_positions)):
+            for node_idx, y in enumerate(y_vals):
+                node_positions[(layer_idx, node_idx)] = (x, y)
+
+        for layer_idx in range(len(self.layers) - 1):
+            for i in range(self.layers[layer_idx]):
+                for j in range(self.layers[layer_idx + 1]):
+                    x0, y0 = node_positions[(layer_idx, i)]
+                    x1, y1 = node_positions[(layer_idx + 1, j)]
+                    
+                    weight = self.weights[layer_idx][i, j]
+                    gradient = self.gradients[layer_idx][i, j]
+
+                    num_points = 20
+                    edge_x = np.linspace(x0, x1, num_points)
+                    edge_y = np.linspace(y0, y1, num_points)
+                    
+                    hover_text = (f"Layer {layer_idx} Node {i} → Layer {layer_idx+1} Node {j}<br>"
+                                  f"Weight: {weight:.4f}<br>"
+                                  f"Gradient: {gradient:.4f}")
+                    
+                    fig.add_trace(go.Scatter(
+                        x=edge_x, 
+                        y=edge_y,
+                        mode='lines',
+                        line=dict(color='black', width=2),
+                        hoverinfo='text',
+                        hovertemplate=hover_text,
+                        opacity=0.7,
+                        showlegend=False
+                    ))
+
+            for j in range(self.layers[layer_idx + 1]):
+                x0 = x_positions[layer_idx]
+                y0 = -1.5 
+                x1, y1 = node_positions[(layer_idx + 1, j)]
+                
+                bias = self.biases[layer_idx][j]
+
+                num_points = 20
+                edge_x = np.linspace(x0, x1, num_points)
+                edge_y = np.linspace(y0, y1, num_points)
+                
+                hover_text = (f"Bias → Layer {layer_idx+1} Node {j}<br>"
+                              f"Bias Value: {bias:.4f}")
+                
+                fig.add_trace(go.Scatter(
+                    x=edge_x, 
+                    y=edge_y,
+                    mode='lines',
+                    line=dict(color='gray', width=1, dash='dot'),
+                    hoverinfo='text',
+                    hovertemplate=hover_text,
+                    opacity=0.7,
+                    showlegend=False
+                ))
+
+        for layer_idx, (x, y_vals, layer_name) in enumerate(zip(x_positions, y_positions, self.layer_names)):
+            for node_idx, y in enumerate(y_vals):
+                fig.add_trace(go.Scatter(
+                    x=[x], 
+                    y=[y],
+                    mode='markers',
+                    marker=dict(
+                        size=20, 
+                        color=f'rgba({int(self.colors[layer_idx][0]*255)}, {int(self.colors[layer_idx][1]*255)}, {int(self.colors[layer_idx][2]*255)}, 1)',
+                        opacity=1
+                    ),
+                    text=[f'Node {node_idx}'],
+                    textposition='bottom center',
+                    hoverinfo='text',
+                    showlegend=False
+                ))
+
+            if layer_idx < len(self.layers) - 1:
+                fig.add_trace(go.Scatter(
+                    x=[x], 
+                    y=[-1.5],
+                    mode='markers',
+                    marker=dict(
+                        size=15, 
+                        color='gray',
+                        opacity=1
+                    ),
+                    text=[f'Bias {layer_idx}'],
+                    textposition='bottom center',
+                    hoverinfo='text',
+                    showlegend=False
+                ))
+            
+            fig.add_annotation(x=x, y=1.2, text=layer_name, showarrow=False, font=dict(size=12, color='black'))
+
+        fig.update_layout(
+            title='Neural Network Structure with Bias Nodes',
+            xaxis=dict(visible=False, range=[-0.1, 1.1]),
+            yaxis=dict(visible=False, range=[-2, 1.2]),
+            showlegend=False,
+            height=800,
+            width=1000,
+            hovermode='closest',
+            hoverdistance=100  
+        )
+        fig.show()
+    
+    def plot_weight_distribution(self, layers_to_plot):
+        fig = go.Figure()
+        
+        for layer_idx in layers_to_plot:
+            layer_data = self.weights[layer_idx].flatten()
+            layer_name = self.layer_names[layer_idx]
+            
+            fig.add_trace(go.Histogram(
+                x=layer_data,
+                name=layer_name,
+                opacity=0.7,
+                xbins=dict(start=min(layer_data), end=max(layer_data), size=0.5)
+            ))
+        
+        fig.update_layout(
+            title='Weight Distribution', 
+            barmode='overlay',
+            xaxis_title='Value',
+            yaxis_title='Frequency'
+        )
+        fig.show()
+
+    def plot_gradient_distribution(self, layers_to_plot):
+        fig = go.Figure()
+        
+        for layer_idx in layers_to_plot:
+            layer_data = self.gradients[layer_idx].flatten()
+            layer_name = self.layer_names[layer_idx]
+            
+            fig.add_trace(go.Histogram(
+                x=layer_data,
+                name=layer_name,
+                opacity=0.7,
+                xbins=dict(start=min(layer_data), end=max(layer_data), size=0.5)
+            ))
+        
+        fig.update_layout(
+            title='Gradient Distribution', 
+            barmode='overlay',
+            xaxis_title='Value',
+            yaxis_title='Frequency'
+        )
+        fig.show()
+
+
+# test
+layer_sizes = [35, 20, 5, 2]
+weights = [np.random.randn(35, 20), np.random.randn(20, 5), np.random.randn(5, 2)]
+gradients = [np.random.randn(35, 20), np.random.randn(20, 5), np.random.randn(5, 2)]
+biases = [np.random.randn(20), np.random.randn(5), np.random.randn(2)]
+
+visualizer = NeuralNetworkVisualizerPlotly(layer_sizes, weights, gradients, biases)
+visualizer.plot_network()
+visualizer.plot_weight_distribution([1, 2])
+visualizer.plot_gradient_distribution([2])
