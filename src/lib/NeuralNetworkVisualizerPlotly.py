@@ -6,6 +6,16 @@ from tqdm import tqdm
 import numpy as np
 import plotly.graph_objects as go
 
+import sys
+
+prev_line_length = 0
+def print_progress(s):
+    global prev_line_length
+    padded_s = s + ' ' * max(0, prev_line_length - len(s))
+    print(padded_s, end='\r')
+    sys.stdout.flush()
+    prev_line_length = len(s)
+
 class NeuralNetworkVisualizerPlotly:
     def __init__(self, layers, weights, gradients, biases, loss_history):
         self.layers = layers
@@ -37,7 +47,7 @@ class NeuralNetworkVisualizerPlotly:
 
         for layer_idx in range(len(self.layers) - 1):
             for i in range(self.layers[layer_idx]):
-                print(f"Layer {layer_idx} Node {i}/{self.layers[layer_idx]}", end='\r')
+                print_progress(f"Layer {layer_idx+1} Node {i+1}/{self.layers[layer_idx]}")
                 for j in range(self.layers[layer_idx + 1]):
                     x0, y0 = node_positions[(layer_idx, i)]
                     x1, y1 = node_positions[(layer_idx + 1, j)]
@@ -88,8 +98,9 @@ class NeuralNetworkVisualizerPlotly:
                     opacity=0.7,
                     showlegend=False
                 ))
-
+        print()
         for layer_idx, (x, y_vals, layer_name) in enumerate(zip(x_positions, y_positions, self.layer_names)):
+            print_progress(f"Finishing Layer {layer_idx+1}: {layer_name}")
             for node_idx, y in enumerate(y_vals):
                 fig.add_trace(go.Scatter(
                     x=[x], 
@@ -133,6 +144,8 @@ class NeuralNetworkVisualizerPlotly:
             hovermode='closest',
             hoverdistance=100  
         )
+        print()
+        print("Plot should be displayed in your browser now!")
         fig.show()
     
 

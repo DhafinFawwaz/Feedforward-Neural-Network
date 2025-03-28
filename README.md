@@ -130,7 +130,7 @@ python main.py -accuracy result/result.csv dataset/y.csv
 
 Plot Netowork
 ```
-python main.py -plot_network model/ffnn_1.pkt --hidden_layer_sizes 64 32 16
+python main.py -plot_network model/ffnn_1.pkt --hidden_layer_sizes 32 24 16
 ```
 
 Plot Weight Distribution
