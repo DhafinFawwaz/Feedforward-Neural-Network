@@ -105,8 +105,7 @@ class FFNNClassifier:
             sig = FFNNClassifier._activation_function(x, 'sigmoid')
             return sig * (1 - sig)
         elif func == 'tanh':
-            p = 2.0/(np.exp(x) - np.exp(-x)) # should be the same as 1 - np.tanh(x) ** 2. will check later
-            return p*p  
+            return 1 - np.tanh(x)**2
         elif func == 'softmax':
             batch_size, n = x.shape
             jacobians = np.zeros((batch_size, n, n), dtype="float32")
