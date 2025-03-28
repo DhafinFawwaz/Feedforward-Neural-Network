@@ -345,7 +345,7 @@ class FFNNClassifier:
             #### while loop ends here ##############################################
 
             current_loss = total_loss / len(self.X)
-            self.loss_history.append(current_loss)
+            self.loss_history.append(float(current_loss))
             if self.verbose == 1:
                 print(f"Epoch {epoch+1}/{self.epoch_amount} done, loss: {current_loss}")
 
@@ -402,7 +402,50 @@ class FFNNClassifier:
             
             prediction[current_idx:until_idx] = nodes_active[-1]
             current_idx += self.batch_size
+
         return prediction
+    
+
+
+    def predict_with_validation_loss(self, X_test: NDArray, y_test: NDArray):
+        proba, loss_list = self.predict_proba_with_validation_loss(X_test, y_test)
+        return np.argmax(proba, axis=1), np.array(loss_list)
+    
+    def predict_proba_with_validation_loss(self, X_test: NDArray, y_test: NDArray):
+        prediction = np.zeros((len(X_test), self._get_amount_of_classes()))
+        current_idx = 0
+        lost_list = []
+        while current_idx < len(X_test):
+            weights, nodes, nodes_active, biases = self._generate_new_empty_layers()
+            until_idx = min(current_idx+self.batch_size, len(X_test))
+            nodes[0] = X_test[current_idx:until_idx]
+            nodes_active[0] = X_test[current_idx:until_idx]
+
+            for k in range(1, len(self.weights_history)+1):
+                w_k = self.weights_history[k-1]
+                b_k = self.biases_history[k-1]
+                h_k_min_1 = nodes_active[k-1]
+
+                a_k = b_k + np.dot(h_k_min_1, w_k)
+
+                nodes[k] = a_k
+                nodes_active[k] = FFNNClassifier._activation_function(a_k, self.activation_func[k-1])
+            
+            prediction[current_idx:until_idx] = nodes_active[-1]
+
+            y_act = y_test[current_idx:until_idx]
+            y_pred = nodes_active[-1]
+            loss = FFNNClassifier._loss_function( # cause the spec says so
+                y_act=y_act,
+                y_pred=y_pred,
+                func=self.loss_func
+            )
+            lost_list.append(loss)
+            
+            current_idx += self.batch_size
+
+        return prediction, lost_list
+    
     
     def save(self, filename: str) -> None:
         data = {

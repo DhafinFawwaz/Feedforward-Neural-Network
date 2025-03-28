@@ -189,7 +189,8 @@ def predict_or_save(args, X_path, y_path):
     print("Training done in", f"{time.time() - start_time:.2f}", "seconds")
 
     print("Predicting to calculate accuracy...")
-    prediction = ffnn.predict(X_test)
+    prediction, loss_list = ffnn.predict_with_validation_loss(X_test, y_test)
+    print("Validation Loss:\n", loss_list)
     print("Accuracy:", calculate_accuracy(prediction, y_test_original) * 100, "%")
 
 
@@ -220,6 +221,8 @@ if args.predict:
     
     print("Predicting...")
     prediction = ffnn.predict(X_unlabeled)
+    print("Writing result to CSV...")
+    pd.DataFrame(prediction).to_csv(result_path, index=False)
     print("Prediction done!")
 
 
