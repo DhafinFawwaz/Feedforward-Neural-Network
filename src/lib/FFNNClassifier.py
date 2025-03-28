@@ -22,7 +22,12 @@ class FFNNClassifier:
             mean: float = 0.0,
             std: float = 1.0,
             seed: int | None = None,
+
+            l1: float = 0.0,
+            l2: float = 0.0,
         ):
+        self.l1 = l1
+        self.l2 = l2
         self.hidden_layer_sizes = hidden_layer_sizes
         self.X: NDArray = []
         self.y: list[ArrayLike] = []
@@ -287,6 +292,24 @@ class FFNNClassifier:
                     y_pred=y_pred,
                     func=self.loss_func
                 )
+
+                
+                # L2 regularization
+                total_l2 = 0
+                for v in self.weights_history:
+                    flat = v.ravel()
+                    total_l2 += np.dot(flat, flat)
+                loss += (0.5 * self.l2) * total_l2 / self.batch_size 
+
+
+                # L1 regularization
+                total_l1 = 0
+                for v in self.weights_history:
+                    flat = v.ravel()
+                    total_l1 += np.sum(np.abs(flat))
+                loss += (0.5 * self.l1) * total_l1 / self.batch_size
+
+
                 total_loss += loss * (until_idx - current_dataset_idx)
 
 
@@ -318,7 +341,12 @@ class FFNNClassifier:
                     # delta = loss_grad * FFNNClassifier._activation_derived_function(nodes[-1], self.activation_func[-1])
                     delta = (nodes_active[-1] - self.y[current_dataset_idx:until_idx]).astype("float32")
 
-                weight_gradiens[network_depth-2] = nodes_active[k-1].T @ delta / self.batch_size
+                    weight_gradiens[network_depth-2] = nodes_active[k-1].T @ delta
+                    weight_gradiens[network_depth-2] += self.l2 * self.weights_history[network_depth-2] # L2 regularization
+                    weight_gradiens[network_depth-2] += self.l1 * np.sign(self.weights_history[network_depth-2]) # L1 regularization
+                    weight_gradiens[network_depth-2] /= self.batch_size
+
+
                 bias_gradiens[network_depth-2] = np.mean(delta, axis=0, keepdims=True)
 
 
@@ -365,6 +393,7 @@ class FFNNClassifier:
 
             current_loss = total_loss / len(self.X)
             self.loss_history.append(float(current_loss))
+            self.validation_loss_history.append(float(current_validation_loss))
             if self.verbose == 1:
                 print(f"Epoch {epoch+1}/{self.epoch_amount} done, Training Loss: {current_loss}, Validation Loss: {current_validation_loss}")
 
