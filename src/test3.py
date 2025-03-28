@@ -26,8 +26,10 @@ max_iter=15
 init_method="normal"
 learning_rate_init=0.01
 batch_size=50
-activation_mlplib="relu"
-activation_ffnn="relu"
+activation_mlplib="identity"
+activation_ffnn="linear"
+l1=0.0
+l2=0.0
 
 # Scikit-learn MLP
 sk_mlp = MLPLIB(
@@ -42,6 +44,7 @@ sk_mlp = MLPLIB(
     seed=seed,
     batch_size=batch_size,
     activation=activation_mlplib,
+    alpha=l2 # MLPClassifier only supports L2 regularization
 )
 
 # Custom MLP
@@ -58,7 +61,9 @@ custom_mlp = FFNNClassifier(
     batch_size=batch_size,
     verbose=1,
     loss_func="categorical_cross_entropy",
-    activation_func=[activation_ffnn] * len(hidden_layer_sizes) + ['softmax']
+    activation_func=[activation_ffnn] * len(hidden_layer_sizes) + ['softmax'],
+    l1=l1,
+    l2=l2,
 )
 
 

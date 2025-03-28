@@ -90,6 +90,9 @@ parser.add_argument('--mean', type=float, default=5.39294405e-05)
 parser.add_argument('--std', type=float, default=0.44)
 parser.add_argument('--seed', type=int, default=69)
 
+parser.add_argument('--l1', type=float, default=0)
+parser.add_argument('--l2', type=float, default=0)
+
 args = parser.parse_args()
 
 if args.download:
@@ -144,6 +147,8 @@ if args.predict or args.save:
     print("Mean:", args.mean)
     print("Std:", args.std)
     print("Seed:", args.seed)
+    print("L1:", args.l1)
+    print("L2:", args.l2)
 
 
 
@@ -180,7 +185,9 @@ def predict_or_save(args, X_path, y_path):
         upper_bound=args.upper_bound,
         mean=args.mean,
         std=args.std,
-        seed=args.seed
+        seed=args.seed,
+        l1=args.l1,
+        l2=args.l2,
     )
 
     print("Training model...")

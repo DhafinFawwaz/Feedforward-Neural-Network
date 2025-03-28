@@ -22,13 +22,14 @@ class MLPLIB(MLPClassifier):
         std: float = 1.0,
         seed: int = None,
         verbose: bool = True,
+        alpha: float = 0,
         **kwargs
     ):
         
         super().__init__(
             **kwargs, 
             shuffle=False,
-            alpha=0.0,
+            alpha=alpha,
             solver='sgd',
             momentum=0.0,
             nesterovs_momentum=False,
