@@ -26,8 +26,8 @@ max_iter=15
 init_method="normal"
 learning_rate_init=0.01
 batch_size=50
-activation_mlplib="logistic"
-activation_ffnn="sigmoid"
+activation_mlplib="relu"
+activation_ffnn="relu"
 
 # Scikit-learn MLP
 sk_mlp = MLPLIB(

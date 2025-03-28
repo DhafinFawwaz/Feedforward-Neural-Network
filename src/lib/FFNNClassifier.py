@@ -104,7 +104,7 @@ class FFNNClassifier:
     @staticmethod
     def _activation_derived_function(x: Union[float, NDArray], func: str):
         if func == 'linear': return np.ones_like(x, dtype="float32")
-        elif func == 'relu': return np.where(x > 0, 1, 0)
+        elif func == 'relu': return np.where(x > 0, 1.0, 0.0).astype("float32")
         elif func == 'sigmoid':
             sig = FFNNClassifier._activation_function(x, 'sigmoid')
             return sig * (1 - sig)
@@ -220,8 +220,6 @@ class FFNNClassifier:
 
 
     def fit(self, X: NDArray, y: NDArray):
-        # if self.seed is not None:
-        #     np.random.seed(self.seed)
         if type(y) == list and type(y[0]) != list:
             y = np.array([[i] for i in y], dtype="int32")
         if type(y) == list and type(y[0]) == list:
@@ -237,39 +235,25 @@ class FFNNClassifier:
             raise Exception("len(self.y) == 0")
         
         self.amount_of_features = len(X[0])
-
-        # clean up in case this function is called multiple times
         self.X: NDArray = []
         self.y: ArrayLike = []
         self.weights_history: list[NDArray] = []
         self.biases_history: list[ArrayLike] = []
         self.weight_gradients_history: list[NDArray] = []
-
         self.loss_history = []
-
 
         self.X = X.astype("float32")
         self.y = y.astype("int32")
-        coefs, intercepts = self._generate_initator_weights()
-        initial_weight = coefs
-        # print("FFNNClassifier initial_weight")
-        # print(initial_weight)
-        initial_bias = intercepts
-        # print("FFNNClassifier initial_bias")
-        # print(initial_bias)
+        initial_weight, initial_bias = self._generate_initator_weights()
         initial_gradients = [np.zeros_like(w, dtype="float32") for w in initial_weight]
         self.weights_history = initial_weight
-        # print(initial_weight)
         self.biases_history = initial_bias
         self.weight_gradients_history = initial_gradients
-
         layer_sizes = self._get_hidden_layer_sizes()
         network_depth = len(layer_sizes)
 
-
         for epoch in range(self.epoch_amount):
             total_loss = 0
-            # for current_dataset_idx in range(len(self.X)):
             current_dataset_idx = 0
             while current_dataset_idx < len(self.X):
                 weights, nodes, nodes_active, biases = self._generate_new_empty_layers() # will be filled with weights based on the previous epoch. Will be appended to the history after the end of the epoch
@@ -283,46 +267,21 @@ class FFNNClassifier:
                     w_k = self.weights_history[k-1]
                     b_k = self.biases_history[k-1]
                     h_k_min_1 = nodes_active[k-1]
-                    # print(k,"dot")
-                    # print(h_k_min_1)
-                    # print(w_k)
-
-                    # print("dot",np.dot(h_k_min_1, w_k))
-                    # print("b_k",b_k)
-                    # a_k = b_k + np.dot(h_k_min_1, w_k) # numpy will automatically broadcast b_k (row will be copied to match the result from dot) so that this is addable
-                    a_k = b_k + (h_k_min_1 @ w_k)
-                    # print("(h_k_min_1 @ w_k)", (h_k_min_1 @ w_k))
+                    a_k = b_k + (h_k_min_1 @ w_k) # numpy will automatically broadcast b_k (row will be copied to match the result from dot) so that this is addable
 
                     nodes[k] = a_k
                     nodes_active[k] = FFNNClassifier._activation_function(a_k, self.activation_func[k-1])
                 
-                # print(nodes_active[-1][-1])
-                # print(nodes_active[-1][-1])
-
-                # print([p.shape for p in nodes_active])
                 y_act = self.y[current_dataset_idx:until_idx]
                 y_pred = nodes_active[network_depth-1]
-
-                # print("y_act", y_act)
-                # print("y_pred", y_pred)
-                # print(nodes_active[-1])
                 
                 loss = FFNNClassifier._loss_function( # cause the spec says so
                     y_act=y_act,
                     y_pred=y_pred,
                     func=self.loss_func
                 )
-                # print("loss", loss)
                 total_loss += loss * (until_idx - current_dataset_idx)
 
-                # print("self.y[current_dataset_idx:until_idx]: ", self.y[current_dataset_idx:until_idx])
-                # print("nodes_active[network_depth-1]: ", nodes_active[network_depth-1])
-                # print("loss_grad: ", loss_grad)
-                # if isinstance(loss_grad, np.ndarray):
-                #     loss_grad = loss_grad.mean()  # or loss_grad.item() if it's a single-element array
-
-                # print("loss", loss_grad)
-                # print("loss.mean()", loss_grad.mean())
 
                 # Backward Propagation
                 weight_gradiens = [0 for i in range(len(self.weights_history))] # 0 will be replaced with numpy.array
@@ -332,10 +291,6 @@ class FFNNClassifier:
                 delta = 0
                 if (self.activation_func[-1] == 'softmax' and self.loss_func == 'categorical_cross_entropy') or (self.activation_func[-1] == "sigmoid" and self.loss_func == 'binary_cross_entropy') or (self.activation_func[-1] == "linear" and self.loss_func == 'mean_squared_error'):
                     delta = (nodes_active[-1] - self.y[current_dataset_idx:until_idx]).astype("float32")
-                    # print("nodes_active[-1].dtype")
-                    # print(nodes_active[-1].dtype)
-                    # print(self.y[current_dataset_idx:until_idx].dtype)
-                    # print(delta.dtype)
 
                 elif self.activation_func[-1] == 'softmax' and self.loss_func != 'categorical_cross_entropy':
                     jacobians = FFNNClassifier._activation_derived_function(nodes[-1], self.activation_func[-1])
@@ -348,22 +303,15 @@ class FFNNClassifier:
                     delta = np.matmul(jacobians, loss_grad_col)  # (batch_size, n, 1)
                     delta = np.squeeze(delta, axis=-1) # (batch_size, n)
                 else:
-                    loss_grad = FFNNClassifier._loss_function_derived(
-                        y_act=y_act,
-                        y_pred=y_pred,
-                        func=self.loss_func
-                    )
-                    delta = loss_grad * FFNNClassifier._activation_derived_function(nodes[-1], self.activation_func[-1])
+                    # loss_grad = FFNNClassifier._loss_function_derived(
+                    #     y_act=y_act,
+                    #     y_pred=y_pred,
+                    #     func=self.loss_func
+                    # )
+                    # delta = loss_grad * FFNNClassifier._activation_derived_function(nodes[-1], self.activation_func[-1])
+                    delta = (nodes_active[-1] - self.y[current_dataset_idx:until_idx]).astype("float32")
 
-                # print("delta:",delta)
-
-                # print(nodes_active[k-1].T.dtype)
-                # print(delta.dtype)
                 weight_gradiens[network_depth-2] = nodes_active[k-1].T @ delta / self.batch_size
-                # print(weight_gradiens[network_depth-2].dtype)
-                # print("current_dataset_idx:", current_dataset_idx)
-                # print(weight_gradiens[network_depth-2])
-                # bias_gradiens[network_depth-2] = -delta
                 bias_gradiens[network_depth-2] = np.mean(delta, axis=0, keepdims=True)
 
 
@@ -371,40 +319,21 @@ class FFNNClassifier:
                     w = self.weights_history[k]
 
                     delta = np.dot(delta, w.T) * FFNNClassifier._activation_derived_function(nodes[k], self.activation_func[k-1])
-
-                    # print(nodes_active[k-1].T)
-                    # print(delta)
-                    # weight_gradiens[k-1] = np.dot(nodes_active[k-1].T, -delta)
                     weight_gradiens[k-1] = nodes_active[k-1].T @ delta / self.batch_size
-                    # bias_gradiens[k-1] = -delta
                     bias_gradiens[k-1] = np.mean(delta, axis=0, keepdims=True)
-                    # print("delta.shape: ", delta.shape)
-                    # print("bias_gradiens[k-1].shape: ", bias_gradiens[k-1].shape)
-                    # print("weight_gradiens[k-1]:", weight_gradiens[k-1])
 
                 self.weight_gradients_history = weight_gradiens
-                # print(weight_gradiens)
-                # print(bias_gradiens)
+
                 # Update
                 for k in range(network_depth-1):
                     w_k = self.weights_history[k]
                     b_k = self.biases_history[k]
 
                     weights[k] = w_k - self.learning_rate * weight_gradiens[k]
-                    # print(k, self.learning_rate * weight_gradiens[k])
-
                     biases[k] = b_k - self.learning_rate * bias_gradiens[k]
-                    # print(k, self.learning_rate * bias_gradiens[k])
 
-                    # print("biases[k].shape: ", biases[k].shape)
-                # print("before")
-                # print(self.weights_history)
                 self.weights_history = weights
                 self.biases_history = biases
-
-                # print("after")
-                # print(self.weights_history)
-
 
                 current_dataset_idx += self.batch_size
             #### while loop ends here ##############################################
@@ -413,7 +342,6 @@ class FFNNClassifier:
             self.loss_history.append(current_loss)
             if self.verbose == 1:
                 print(f"Epoch {epoch+1}/{self.epoch_amount} done, loss: {current_loss}")
-                # print("Epoch %d/%d done, loss: %.8f" % (epoch+1, self.epoch_amount, current_loss))
 
             elif self.verbose == 2:
                 print(f"========================================")

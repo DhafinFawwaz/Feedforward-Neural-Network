@@ -8,10 +8,12 @@ If using command prompt:
 ```bash
 python -m venv venv
 venv\Scripts\activate
+cd src
 ```
 ### Install Dependencies
 ```bash
 pip install -r requirements.txt
+pip install --upgrade nbformat
 ```
 
 
