@@ -48,6 +48,7 @@ class FFNNClassifier:
         self.seed = seed
 
         self.amount_of_features = -1
+        self.amount_of_classes = -1
 
         self.loss_history = []
 
@@ -72,7 +73,7 @@ class FFNNClassifier:
         #     np.random.seed(self.seed)
         len_features = self._get_amount_of_features()
         layers = np.copy([len_features])
-        len_classes = np.array([self._get_number_of_classes()], dtype="int32")
+        len_classes = np.array([self._get_amount_of_classes()], dtype="int32")
         layers = np.append(layers, self.hidden_layer_sizes)
         layers = np.append(layers, len_classes)
         # print("layers:", layers)
@@ -181,7 +182,7 @@ class FFNNClassifier:
     def _get_hidden_layer_sizes(self) -> np.typing.NDArray:
 
         len_features = self._get_amount_of_features()
-        len_classes = self._get_number_of_classes()
+        len_classes = self._get_amount_of_classes()
         layer_sizes = np.zeros(len(self.hidden_layer_sizes)+2, dtype="int32")
         layer_sizes[0] = len_features
         for i in range(1, len(self.hidden_layer_sizes)+1):
@@ -210,10 +211,11 @@ class FFNNClassifier:
 
 
     # Can only be called after setting X and y
-    def _get_number_of_classes(self):
+    def _get_amount_of_classes(self):
         # return len(np.unique(self.y))
         # return 10 # hardcoded because it messes up things when the possible value is not much
-        return len(self.y[0])
+        # return len(self.y[0])
+        return self.amount_of_classes
 
     def copy_list_as_zeros(self, list: list[NDArray]):
         return [np.zeros_like(w) for w in list]
@@ -238,6 +240,7 @@ class FFNNClassifier:
             raise Exception("len(self.y) == 0")
         
         self.amount_of_features = len(X[0])
+        self.amount_of_classes = len(y[0])
         self.X: NDArray = []
         self.y: ArrayLike = []
         self.weights_history: list[NDArray] = []
@@ -379,7 +382,7 @@ class FFNNClassifier:
         return np.argmax(proba, axis=1)
     
     def predict_proba(self, X_test: NDArray):
-        prediction = np.zeros((len(X_test), self._get_number_of_classes()))
+        prediction = np.zeros((len(X_test), self._get_amount_of_classes()))
         current_idx = 0
         while current_idx < len(X_test):
             weights, nodes, nodes_active, biases = self._generate_new_empty_layers()
@@ -420,7 +423,8 @@ class FFNNClassifier:
             "biases_history": self.biases_history,
             "weight_gradients_history": self.weight_gradients_history,
             "amount_of_features": self.amount_of_features,
-            "loss_history": self.loss_history
+            "amount_of_classes": self.amount_of_classes,
+            "loss_history": self.loss_history,
         }
         with open(filename, "wb") as f:
             pickle.dump(data, f)
@@ -451,6 +455,7 @@ class FFNNClassifier:
         model.biases_history = data["biases_history"]
         model.weight_gradients_history = data["weight_gradients_history"]
         model.amount_of_features = data["amount_of_features"]
+        model.amount_of_classes = data["amount_of_classes"]
         model.loss_history = data["loss_history"]
 
         return model
