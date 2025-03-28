@@ -11,7 +11,7 @@ class FFNNClassifier:
     def __init__(self,
             hidden_layer_sizes: NDArray,
             learning_rate: float,
-            activation_func: List[Literal['linear', 'relu', 'sigmoid', 'tanh', 'softmax']] = None,
+            activation_func: List[Literal['linear', 'relu', 'sigmoid', 'tanh', 'softmax', 'softsign', 'softplus']] = None,
             verbose: int = 0, # 0: no print, 1: print epoch progress
             max_epoch: int = 50,
             batch_size: int = 256,
@@ -95,6 +95,10 @@ class FFNNClassifier:
         elif func == 'softmax':
             exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
             return exp_x / np.sum(exp_x, axis=1, keepdims=True) # keepdims=True will keep the dimension of the original array
+        elif func == "softsign":
+            return x / (1 + np.abs(x))
+        elif func == "softplus":
+            return np.log(1 + np.exp(x))
         raise "Activation function not supported!"
 
     @staticmethod
@@ -115,6 +119,11 @@ class FFNNClassifier:
                 jacobians[i] = np.diagflat(s) - s @ s.T
 
             return jacobians
+        elif func == "softsign":
+            one_plus_abs_x = 1 + np.abs(x)
+            return 1 / (one_plus_abs_x * one_plus_abs_x)
+        elif func == "softplus":
+            return 1 / (1 + np.exp(-x)) # sigmoid(x)
         raise "Activation function not supported!"
 
 
