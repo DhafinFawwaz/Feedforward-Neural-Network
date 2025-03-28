@@ -130,18 +130,17 @@ python main.py -accuracy result/result.csv dataset/y.csv
 
 Plot Netowork
 ```
-python main.py -plot_network model/ffnn_1.pkt
+python main.py -plot_network model/ffnn_1.pkt --hidden_layer_sizes 64 32 16
 ```
 
 Plot Weight Distribution
 ```
-python main.py -plot_weights model/ffnn_1.pkt -layers_to_plot 1 -plot_type hist
-python main.py -plot_weights model/ffnn_2.pkt --layers_to_plot 0 1 2 3 --plot_type line
+python main.py -plot_weights model/ffnn_1.pkt --plot_size 0.01
 ```
 
 Plot Gradient Distribution
 ```
-python main.py -plot_gradients model/ffnn_1.pkt -layers_to_plot 0 1 -plot_type hist
+python main.py -plot_gradients model/ffnn_1.pkt --plot_size 0.0001
 ```
 
 Save with all parameters
