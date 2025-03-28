@@ -51,6 +51,7 @@ class FFNNClassifier:
         self.amount_of_classes = -1
 
         self.loss_history = []
+        self.validation_loss_history = []
 
 
 
@@ -224,7 +225,7 @@ class FFNNClassifier:
 
 
 
-    def fit(self, X: NDArray, y: NDArray):
+    def fit(self, X: NDArray, y: NDArray, X_test: NDArray, y_test: NDArray):
         if type(y) == list and type(y[0]) != list:
             y = np.array([[i] for i in y], dtype="int32")
         if type(y) == list and type(y[0]) == list:
@@ -344,10 +345,28 @@ class FFNNClassifier:
                 current_dataset_idx += self.batch_size
             #### while loop ends here ##############################################
 
+            prediction_with_validation = self.predict_proba(X_test)
+            # calculate loss for validation set
+            current_dataset_idx = 0
+            total_validation_loss = 0
+            while current_dataset_idx < len(X_test):
+                until_idx = min(current_dataset_idx+self.batch_size, len(X_test))
+                y_pred = prediction_with_validation[current_dataset_idx:until_idx]
+                y_act = y_test[current_dataset_idx:until_idx]
+
+                loss = FFNNClassifier._loss_function(
+                    y_act=y_act,
+                    y_pred=y_pred,
+                    func=self.loss_func
+                )
+                total_validation_loss += loss * (until_idx - current_dataset_idx)
+                current_dataset_idx += self.batch_size
+            current_validation_loss = total_validation_loss / len(X_test)
+
             current_loss = total_loss / len(self.X)
             self.loss_history.append(float(current_loss))
             if self.verbose == 1:
-                print(f"Epoch {epoch+1}/{self.epoch_amount} done, loss: {current_loss}")
+                print(f"Epoch {epoch+1}/{self.epoch_amount} done, Training Loss: {current_loss}, Validation Loss: {current_validation_loss}")
 
             elif self.verbose == 2:
                 print(f"========================================")
@@ -406,46 +425,6 @@ class FFNNClassifier:
         return prediction
     
 
-
-    def predict_with_validation_loss(self, X_test: NDArray, y_test: NDArray):
-        proba, loss_list = self.predict_proba_with_validation_loss(X_test, y_test)
-        return np.argmax(proba, axis=1), np.array(loss_list)
-    
-    def predict_proba_with_validation_loss(self, X_test: NDArray, y_test: NDArray):
-        prediction = np.zeros((len(X_test), self._get_amount_of_classes()))
-        current_idx = 0
-        lost_list = []
-        while current_idx < len(X_test):
-            weights, nodes, nodes_active, biases = self._generate_new_empty_layers()
-            until_idx = min(current_idx+self.batch_size, len(X_test))
-            nodes[0] = X_test[current_idx:until_idx]
-            nodes_active[0] = X_test[current_idx:until_idx]
-
-            for k in range(1, len(self.weights_history)+1):
-                w_k = self.weights_history[k-1]
-                b_k = self.biases_history[k-1]
-                h_k_min_1 = nodes_active[k-1]
-
-                a_k = b_k + np.dot(h_k_min_1, w_k)
-
-                nodes[k] = a_k
-                nodes_active[k] = FFNNClassifier._activation_function(a_k, self.activation_func[k-1])
-            
-            prediction[current_idx:until_idx] = nodes_active[-1]
-
-            y_act = y_test[current_idx:until_idx]
-            y_pred = nodes_active[-1]
-            loss = FFNNClassifier._loss_function( # cause the spec says so
-                y_act=y_act,
-                y_pred=y_pred,
-                func=self.loss_func
-            )
-            lost_list.append(loss)
-            
-            current_idx += self.batch_size
-
-        return prediction, lost_list
-    
     
     def save(self, filename: str) -> None:
         data = {

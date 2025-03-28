@@ -185,12 +185,11 @@ def predict_or_save(args, X_path, y_path):
 
     print("Training model...")
     start_time = time.time()
-    ffnn.fit(X_train, y_train)
+    training_loss, validation_loss = ffnn.fit(X_train, y_train, X_test, y_test)
     print("Training done in", f"{time.time() - start_time:.2f}", "seconds")
 
     print("Predicting to calculate accuracy...")
-    prediction, loss_list = ffnn.predict_with_validation_loss(X_test, y_test)
-    print("Validation Loss:\n", loss_list)
+    prediction = ffnn.predict(X_test)
     print("Accuracy:", calculate_accuracy(prediction, y_test_original) * 100, "%")
 
 

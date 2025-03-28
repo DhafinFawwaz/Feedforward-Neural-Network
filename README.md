@@ -52,6 +52,33 @@ After downloading the `dataset/X.csv` and saved `model/ffnn_1.pkt`, rename it to
 python main.py -load model/ffnn_1.pkt dataset/X_unlabeled.csv result/result.csv
 ```
 
+### Commands
+```bash
+python main.py -download <save parameters>
+python main.py -save <save parameters>
+python main.py -plot_network <plot_network parameters>
+python main.py -plot_gradients <plot_gradients parameters>
+python main.py -plot_weights <plot_weights parameters>
+python main.py -load <load parameters> <command_parameters>
+```
+
+### Command Parameters
+```
+--test_size
+--hidden_layer_sizes
+--activation_func
+--learning_rate
+--verbose
+--max_epoch
+--batch_size
+--loss_func
+--init_method
+--lower_bound
+--upper_bound
+--mean
+--std
+--seed
+```
 
 ### Useful other Commands for different parameters
 Before we start, you can of course just run it with wrong parameters and it will show the correct parameters to use
@@ -81,25 +108,10 @@ Calculate accuracy
 python main.py -accuracy <result_filepath> <ground_truth_filepath>
 ```
 
-Parameters for -predict or -save
+Save with all parameters
 ```
-Set values for -save and -predict. defaults are:
-test_size=0.1
-hidden_layer_sizes=[256, 128, 64],
-activation_func=["sigmoid", "sigmoid", "sigmoid", "sigmoid"],
-learning_rate=0.05,
-verbose=1,
-max_epoch=15,
-batch_size=50,
-loss_func="mean_squared_error",
-init_method="normal",
-lower_bound=5.39294405e-05,
-upper_bound=1,
-mean=5.39294405e-05,
-std=.44,
-seed=69
+python main.py -save dataset/X.csv dataset/y.csv model/ffnn_4.pkt -test_size 0.1 -hidden_layer_sizes 256 128 64 -activation_func sigmoid sigmoid sigmoid sigmoid -learning_rate 0.05 -verbose 1 -max_epoch 15 -batch_size 50 -loss_func mean_squared_error -init_method normal -lower_bound 5.39294405e-05 -upper_bound 1 -mean 5.39294405e-05 -std .44 -seed 69
 ```
-
 
 Examples
 
@@ -141,11 +153,6 @@ python main.py -plot_weights model/ffnn_1.pkt --plot_size 0.01
 Plot Gradient Distribution
 ```
 python main.py -plot_gradients model/ffnn_1.pkt --plot_size 0.0001
-```
-
-Save with all parameters
-```
-python main.py -save dataset/X.csv dataset/y.csv model/ffnn_4.pkt -test_size 0.1 -hidden_layer_sizes 256 128 64 -activation_func sigmoid sigmoid sigmoid sigmoid -learning_rate 0.05 -verbose 1 -max_epoch 15 -batch_size 50 -loss_func mean_squared_error -init_method normal -lower_bound 5.39294405e-05 -upper_bound 1 -mean 5.39294405e-05 -std .44 -seed 69
 ```
 
 

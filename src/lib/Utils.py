@@ -95,7 +95,7 @@ def visualize_dataset(X, y, row_count, col_count, offset = 0):
 
 def model_scratch_output(custom_mlp: FFNNClassifier, X_train_scaled, y_train_one_hot, X_test_scaled, y_test_one_hot, is_only_show_accuracy: bool = False):
     print("[From Scratch FFNNClassifier]")
-    custom_mlp.fit(X_train_scaled, y_train_one_hot)
+    custom_mlp.fit(X_train_scaled, y_train_one_hot, X_test_scaled, y_test_one_hot)
     custom_pred = custom_mlp.predict(X_test_scaled)
     custom_pred_proba = custom_mlp.predict_proba(X_test_scaled)
     y_test_labels = np.argmax(y_test_one_hot, axis=1)
@@ -136,16 +136,14 @@ def model_comparison(sk_mlp: MLPClassifier, custom_mlp: FFNNClassifier, X_train_
     print()
 
     print("[From Scratch FFNNClassifier]")
-    custom_mlp.fit(X_train_scaled, y_train_one_hot)
-    custom_pred, loss_list = custom_mlp.predict_with_validation_loss(X_test_scaled, y_test_one_hot)
+    custom_mlp.fit(X_train_scaled, y_train_one_hot, X_test_scaled, y_test_one_hot)
+    custom_pred = custom_mlp.predict(X_test_scaled)
     custom_pred_proba = custom_mlp.predict_proba(X_test_scaled)
     y_test_labels = np.argmax(y_test_one_hot, axis=1)
     custom_accuracy = accuracy_score(y_test_labels, custom_pred)
     if is_only_show_accuracy:
-        print("Validation Loss:\n", loss_list)
         print("Accuracy:\n", custom_accuracy)
     else:
-        print("Validation Loss:\n", loss_list)
         print("Weights:\n", custom_mlp.weights_history)
         print("Biases:\n", custom_mlp.biases_history)
         print("Prediction:\n", custom_pred)
