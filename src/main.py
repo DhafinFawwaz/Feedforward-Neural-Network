@@ -66,6 +66,12 @@ group.add_argument(
     metavar=('MODEL_PATH'),
     help='Plot the gradient distribution'
 )
+group.add_argument(
+    '-plot_loss',
+    nargs=1,
+    metavar=('MODEL_PATH'),
+    help='Plot the loss history'
+)
 parser.add_argument('--layers_to_plot', type=int, nargs='+', default=[0])
 parser.add_argument('--plot_size', type=float, default=0.01)
 
@@ -114,8 +120,11 @@ elif args.plot_weights:
 elif args.plot_gradients:
     model_path = args.plot_gradients[0]
     layers_to_plot = args.layers_to_plot
-    plot_size = args.plot_size
-    print(f"Plotting gradients:\n  Model={model_path}\n  Layers={layers_to_plot}\n  Plot Size={plot_size}")
+    plot_type = args.plot_type
+    print(f"Plotting gradients:\n  Model={model_path}\n  Layers={layers_to_plot}\n  Plot Type={plot_type}")
+elif args.plot_loss:
+    model_path = args.plot_loss[0]
+    print(f"Plotting loss:\n  Model={model_path}")
 
 if args.predict or args.save:
     print("\nTraning Parameters:")
@@ -189,16 +198,15 @@ def predict_or_save(args, X_path, y_path):
 def get_visualizer(ffnn: FFNNClassifier):
     layers = ffnn._get_hidden_layer_sizes()
     weights = ffnn.weights_history
+    biases = ffnn.biases_history
     weight_gradients = ffnn.weight_gradients_history
-    biases = [0 for _ in range(len(ffnn.biases_history))]
-    for i in range(len(ffnn.biases_history)):
-        biases[i] = ffnn.biases_history[i][0]
-
+    loss_history = ffnn.loss_history
     nnv = NeuralNetworkVisualizerPlotly(
         layers=layers,
         weights=weights,
         gradients=weight_gradients,
         biases=biases,
+        loss_history=loss_history,
     )
     return nnv
 
@@ -275,4 +283,8 @@ if args.plot_gradients:
     nnv = get_visualizer(ffnn)
     nnv.plot_gradient_distribution(layers_to_plot, plot_size)
 
-
+if args.plot_loss:
+    model_path = args.plot_loss[0]
+    ffnn = FFNNClassifier.load(model_path)
+    nnv = get_visualizer(ffnn)
+    nnv.plot_loss()

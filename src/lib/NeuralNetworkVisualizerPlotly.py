@@ -7,11 +7,12 @@ import numpy as np
 import plotly.graph_objects as go
 
 class NeuralNetworkVisualizerPlotly:
-    def __init__(self, layers, weights, gradients, biases):
+    def __init__(self, layers, weights, gradients, biases, loss_history):
         self.layers = layers
         self.weights = weights
         self.gradients = gradients
-        self.biases = biases
+        self.biases = [bias.ravel() for bias in biases]
+        self.loss_history = loss_history
         self.colors = sns.color_palette("husl", len(layers))
         self.layer_names = self._generate_layer_names()
     
@@ -282,20 +283,30 @@ class NeuralNetworkVisualizerPlotly:
             yaxis_title='Frequency'
         )
         fig.show()
+    
+    def plot_loss(self):
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(y=self.loss_history, mode='lines', name='Loss'))
+        
+        fig.update_layout(
+            title='Loss Over Time',
+            xaxis_title='Epoch',
+            yaxis_title='Loss',
+            template='plotly_white'
+        )
+        
+        fig.show()
 
 
-# test
-if __name__ == "__main__":
-    layer_sizes = [35, 20, 5, 2]
-    weights = [np.random.randn(35, 20), np.random.randn(20, 5), np.random.randn(5, 2)]
-    gradients = [np.random.randn(35, 20), np.random.randn(20, 5), np.random.randn(5, 2)]
-    biases = [np.random.randn(20), np.random.randn(5), np.random.randn(2)]
+# # # test
+# layer_sizes = [35, 20, 5, 2]
+# weights = [np.random.randn(35, 20), np.random.randn(20, 5), np.random.randn(5, 2)]
+# gradients = [np.random.randn(35, 20), np.random.randn(20, 5), np.random.randn(5, 2)]
+# biases = [np.random.randn(20), np.random.randn(5), np.random.randn(2)]
+# loss_history = np.exp(-0.1 * np.arange(100)) + np.random.normal(0, 0.02, 100) 
 
-    print(len(layer_sizes))
-    print([x.shape for x in weights])
-    print([x.shape for x in gradients])
-    print([x.shape for x in biases])
-    visualizer = NeuralNetworkVisualizerPlotly(layer_sizes, weights, gradients, biases)
-    visualizer.plot_network()
-    visualizer.plot_weight_distribution([1, 2])
-    visualizer.plot_gradient_distribution([2])
+# visualizer = NeuralNetworkVisualizerPlotly(layer_sizes, weights, gradients, biases, loss_history)
+# visualizer.plot_network()
+# visualizer.plot_weight_distribution([1, 2])
+# visualizer.plot_gradient_distribution([2])
+# visualizer.plot_loss()
