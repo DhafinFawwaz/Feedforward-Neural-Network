@@ -1,15 +1,11 @@
 
 import numpy as np
-from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from lib.FFNNClassifier import FFNNClassifier
 from lib.Utils import normalize
-from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import accuracy_score
 import numpy as np
 from lib.MLPLib import MLPLIB
-import random
 import pandas as pd
 
 from lib.Utils import model_comparison
@@ -81,7 +77,6 @@ y_train = y_train[:train_until_idx]
 X_test = X_test[:test_until_idx]
 y_test = y_test[:test_until_idx]
 
-scaler = StandardScaler()
 X_train_scaled = normalize(X_train)
 X_test_scaled = normalize(X_test)
 y_train_one_hot = one_hot_encode(y_train, 10)
