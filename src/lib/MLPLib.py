@@ -97,10 +97,8 @@ class MLPLIB(MLPClassifier):
 
         return loss, coef_grads, intercept_grads
     
-
+    # Override to include L1 regularization
     def _compute_loss_grad(self, layer, n_samples, activations, deltas, coef_grads, intercept_grads):
-        super()._compute_loss_grad(layer, n_samples, activations, deltas, coef_grads, intercept_grads)
-        # L1 regularization
         coef_grads[layer] = safe_sparse_dot(activations[layer].T, deltas[layer])
         coef_grads[layer] += self.alpha * self.coefs_[layer] # L2 regularization
         coef_grads[layer] += self.alpha_l1 * np.sign(self.coefs_[layer]) # L1 regularization
