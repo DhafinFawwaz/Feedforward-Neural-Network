@@ -67,7 +67,7 @@ group.add_argument(
     help='Plot the gradient distribution'
 )
 parser.add_argument('--layers_to_plot', type=int, nargs='+', default=[0])
-parser.add_argument('--plot_type', type=str, default="histogram")
+parser.add_argument('--plot_size', type=float, default=0.01)
 
 parser.add_argument('--test_size', type=float, default=0.1)
 parser.add_argument('--hidden_layer_sizes', type=int, nargs='+', default=[256, 128, 64])
@@ -109,13 +109,13 @@ elif args.plot_network:
 elif args.plot_weights:
     model_path = args.plot_weights[0]
     layers_to_plot = args.layers_to_plot
-    plot_type = args.plot_type
-    print(f"Plotting weights:\n  Model={model_path}\n  Layers={layers_to_plot}\n  Plot Type={plot_type}")
+    plot_size = args.plot_size
+    print(f"Plotting weights:\n  Model={model_path}\n  Layers={layers_to_plot}\n  Plot Size={plot_size}")
 elif args.plot_gradients:
     model_path = args.plot_gradients[0]
     layers_to_plot = args.layers_to_plot
-    plot_type = args.plot_type
-    print(f"Plotting gradients:\n  Model={model_path}\n  Layers={layers_to_plot}\n  Plot Type={plot_type}")
+    plot_size = args.plot_size
+    print(f"Plotting gradients:\n  Model={model_path}\n  Layers={layers_to_plot}\n  Plot Size={plot_size}")
 
 if args.predict or args.save:
     print("\nTraning Parameters:")
@@ -189,8 +189,11 @@ def predict_or_save(args, X_path, y_path):
 def get_visualizer(ffnn: FFNNClassifier):
     layers = ffnn._get_hidden_layer_sizes()
     weights = ffnn.weights_history
-    biases = ffnn.biases_history
     weight_gradients = ffnn.weight_gradients_history
+    biases = [0 for _ in range(len(ffnn.biases_history))]
+    for i in range(len(ffnn.biases_history)):
+        biases[i] = ffnn.biases_history[i][0]
+
     nnv = NeuralNetworkVisualizerPlotly(
         layers=layers,
         weights=weights,
@@ -253,24 +256,23 @@ if args.accuracy:
 if args.plot_network:
     model_path = args.plot_network[0]
     ffnn = FFNNClassifier.load(model_path)
-    print([w.shape for w in ffnn.weights_history])
     nnv = get_visualizer(ffnn)
     nnv.plot_network()
 
 if args.plot_weights:
     model_path = args.plot_weights[0]
     layers_to_plot = args.layers_to_plot
-    plot_type = args.plot_type
+    plot_size = args.plot_size
     ffnn = FFNNClassifier.load(model_path)
     nnv = get_visualizer(ffnn)
-    nnv.plot_weight_distribution(layers_to_plot, plot_type)
+    nnv.plot_weight_distribution(layers_to_plot, plot_size)
 
 if args.plot_gradients:
     model_path = args.plot_gradients[0]
     layers_to_plot = args.layers_to_plot
-    plot_type = args.plot_type
+    plot_size = args.plot_size
     ffnn = FFNNClassifier.load(model_path)
     nnv = get_visualizer(ffnn)
-    nnv.plot_gradient_distribution(layers_to_plot, plot_type)
+    nnv.plot_gradient_distribution(layers_to_plot, plot_size)
 
 
