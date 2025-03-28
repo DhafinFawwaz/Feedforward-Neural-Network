@@ -23,6 +23,7 @@ class MLPLIB(MLPClassifier):
         seed: int = None,
         verbose: bool = True,
         alpha: float = 0,
+        alpha_l1: float = 0,
         **kwargs
     ):
         
@@ -44,13 +45,17 @@ class MLPLIB(MLPClassifier):
         self.mean = mean
         self.std = std
         self.seed = seed
+        self.alpha_l1 = alpha_l1
+        # self.alpha_l2 is self.alpha
 
+    # Override to set the seed
     def _initialize(self, y, layer_units, dtype):
         if self.seed is not None:
             np.random.seed(self.seed)
         super()._initialize(y, layer_units, dtype)
         
-        
+    
+    # Override to include custom weight initialization
     def _init_coef(self, fan_in, fan_out, dtype):
         """Custom weight initialization based on `init_method`."""
         if self.activation == 'logistic':
@@ -77,3 +82,28 @@ class MLPLIB(MLPClassifier):
         # print(intercept_init)
         return coef_init, intercept_init
     
+
+    # Override to include L1 regularization
+    def _backprop(self, X, y, activations, deltas, coef_grads, intercept_grads):
+        loss, coef_grads, intercept_grads = super()._backprop(X, y, activations, deltas, coef_grads, intercept_grads)
+
+        # L1 regularization
+        n_samples = X.shape[0]
+        values = 0
+        for s in self.coefs_:
+            s = s.ravel()
+            values += np.sum(np.abs(s))
+        loss += (0.5 * self.alpha_l1) * values / n_samples
+
+        return loss, coef_grads, intercept_grads
+    
+
+    def _compute_loss_grad(self, layer, n_samples, activations, deltas, coef_grads, intercept_grads):
+        super()._compute_loss_grad(layer, n_samples, activations, deltas, coef_grads, intercept_grads)
+        # L1 regularization
+        coef_grads[layer] = safe_sparse_dot(activations[layer].T, deltas[layer])
+        coef_grads[layer] += self.alpha * self.coefs_[layer] # L2 regularization
+        coef_grads[layer] += self.alpha_l1 * np.sign(self.coefs_[layer]) # L1 regularization
+        coef_grads[layer] /= n_samples
+
+        intercept_grads[layer] = np.mean(deltas[layer], 0)

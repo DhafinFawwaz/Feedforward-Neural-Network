@@ -28,8 +28,8 @@ learning_rate_init=0.01
 batch_size=50
 activation_mlplib="identity"
 activation_ffnn="linear"
-l1=0.0
-l2=0.0
+l1=0.1
+l2=0.1
 
 # Scikit-learn MLP
 sk_mlp = MLPLIB(
@@ -44,7 +44,8 @@ sk_mlp = MLPLIB(
     seed=seed,
     batch_size=batch_size,
     activation=activation_mlplib,
-    alpha=l2 # MLPClassifier only supports L2 regularization
+    alpha=l2, # L2 regularization
+    alpha_l1=l1, # L1 regularization
 )
 
 # Custom MLP
