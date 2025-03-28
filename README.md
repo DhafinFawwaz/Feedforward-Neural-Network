@@ -1,14 +1,35 @@
 # IF3270 Pembelajaran Mesin Feedforward Neural Network
 
+## Memberss
+| Name | NIM | Description |
+| --- | --- | --- |
+| 13522014 | Raden Rafly Hanggaraksa Budiarto | Metode inisialisasi bobot, Perbandingan performa model dengan library, Menyusun laporan |
+| 13522084 | Dhafin Fawwaz Ikramullah | Forward propagation, Backward propagation, Debugging dan emastikan output sama dengan MLPClassifier sklearn, Menyusun laporan |
+| 13522092 | Sa’ad Abdul Hakim | Visualisasi, Menyusun laporan |
+
+## Description
+This project is an implementation of a feedforward neural network from scratch. It has same result with sklearn's MLPClassifier and might have more detailed result because of using float64 instead of float32. 
+- `main.py` is the main file to run the project
+- `test3.py` is the file to test the implementation with the MNIST dataset
+- `test4.py` is the file to test the implementation with manually created dataset with smaller size
+
+You can save the trained model in the `model` folder and load it later to predict new data. You can also calculate the accuracy of the prediction. You can also store the dataset in csv format in the `dataset` folder. The lib folder contains the implementation of the feedforward neural network.
+- `FFNNClassidier.py` is the implementation of the feedforward neural network from scratch
+- `MLPLib.py` is sklearn's MLPClassifier with overridden initial weights
+- `NeuralNetworkVisualizer.py` is a class to visualize the neural network
+- `Utils.py` contains utility functions
+
+
+
 ## Setup Project
 
 ### Setup Virtual Environment
 
 If using command prompt:
 ```bash
+cd src
 python -m venv venv
 venv\Scripts\activate
-cd src
 ```
 ### Install Dependencies
 ```bash
@@ -16,29 +37,52 @@ pip install -r requirements.txt
 pip install --upgrade nbformat
 ```
 
+### Quick Command to Run
+```bash
+python main.py -download dataset/X.csv dataset/y.csv
+python main.py -save dataset/X.csv dataset/y.csv model/ffnn_1.pkt
+python main.py -plot_network model/ffnn_1.pkt
+python main.py -plot_gradients model/ffnn_1.pkt
+python main.py -plot_weights model/ffnn_1.pkt
+```
+
+### Quick Command to Predict
+After downloading the `dataset/X.csv` and saved `model/ffnn_1.pkt`, rename it to `dataset/X_unlabeled.csv` and run the following command
+```bash
+python main.py -load model/ffnn_1.pkt dataset/X_unlabeled.csv result/result.csv
+```
 
 
-
-
-can only be either one of the following:
--download, -predict, -save, -load, -accuracy
+### Useful other Commands for different parameters
+Before we start, you can of course just run it with wrong parameters and it will show the correct parameters to use
 
 Download the dataset from mnist and save it to the specified path
--download <dataset_filepath_x> <dataset_filepath_y>
+```
+python main.py -download <dataset_filepath_x> <dataset_filepath_y>
+```
 
 Read the dataset and immedietely predict without saving the model
--predict <dataset_filepath_x> <dataset_filepath_y> <unlabeled_filepath> <result_filepath>
+```
+python main.py -predict <dataset_filepath_x> <dataset_filepath_y> <unlabeled_filepath> <result_filepath>
+```
 
 Save model
--save <dataset_filepath_x> <dataset_filepath_y> <model_filepath>
+```
+python main.py -save <dataset_filepath_x> <dataset_filepath_y> <model_filepath>
+```
 
 Load existing model
--load <model_filepath> <unlabeled_filepath> <result_filepath>
+```
+python main.py -load <model_filepath> <unlabeled_filepath> <result_filepath>
+```
 
 Calculate accuracy
--accuracy <result_filepath> <ground_truth_filepath>
+```
+python main.py -accuracy <result_filepath> <ground_truth_filepath>
+```
 
-Do this if -predict or -save
+Parameters for -predict or -save
+```
 Set values for -save and -predict. defaults are:
 test_size=0.1
 hidden_layer_sizes=[256, 128, 64],
@@ -54,45 +98,60 @@ upper_bound=1,
 mean=5.39294405e-05,
 std=.44,
 seed=69
+```
 
 
-
-Example
+Examples
 
 Download
+```
 python main.py -download dataset/X.csv dataset/y.csv
+```
 
 Predict
+```
 python main.py -predict dataset/X.csv dataset/y.csv dataset/unlabeled.csv result/result.csv
+```
 
 Save
+```
 python main.py -save dataset/X.csv dataset/y.csv model/ffnn_1.pkt
+```
 
 Load
+```
 python main.py -load model/ffnn_1.pkt dataset/X_unlabeled.csv result/result.csv
+```
 
 Accuracy
+```
 python main.py -accuracy result/result.csv dataset/y.csv
+```
 
 Plot Netowork
+```
 python main.py -plot_network model/ffnn_1.pkt
+```
 
 Plot Weight Distribution
+```
 python main.py -plot_weights model/ffnn_1.pkt -layers_to_plot 1 -plot_type hist
+python main.py -plot_weights model/ffnn_2.pkt --layers_to_plot 0 1 2 3 --plot_type line
+```
 
 Plot Gradient Distribution
+```
 python main.py -plot_gradients model/ffnn_1.pkt -layers_to_plot 0 1 -plot_type hist
-python main.py -plot_weights model/ffnn_2.pkt --layers_to_plot 0 1 2 3 --plot_type line
+```
 
 Save with all parameters
-python main.py -save dataset/X.csv dataset/y.csv model/ffnn_1.pkt -test_size 0.1 -hidden_layer_sizes 256 128 64 -activation_func sigmoid sigmoid sigmoid sigmoid -learning_rate 0.05 -verbose 1 -max_epoch 15 -batch_size 50 -loss_func mean_squared_error -init_method normal -lower_bound 5.39294405e-05 -upper_bound 1 -mean 5.39294405e-05 -std .44 -seed 69
+```
+python main.py -save dataset/X.csv dataset/y.csv model/ffnn_4.pkt -test_size 0.1 -hidden_layer_sizes 256 128 64 -activation_func sigmoid sigmoid sigmoid sigmoid -learning_rate 0.05 -verbose 1 -max_epoch 15 -batch_size 50 -loss_func mean_squared_error -init_method normal -lower_bound 5.39294405e-05 -upper_bound 1 -mean 5.39294405e-05 -std .44 -seed 69
+```
 
 
-Predict
+Predict with custom activation function and loss function
+```
 python main.py -predict dataset/X.csv dataset/y.csv dataset/unlabeled.csv result/result.csv --loss_func categorical_cross_entropy --activation_func sigmoid sigmoid sigmoid softmax
+```
 
-
-
-
-
-['__abstractmethods__', '__annotations__', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__firstlineno__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__sklearn_clone__', '__sklearn_tags__', '__static_attributes__', '__str__', '__subclasshook__', '__weakref__', '_abc_impl', '_backprop', '_build_request_for_signature', '_check_feature_names', '_check_n_features', '_check_solver', '_compute_loss_grad', '_doc_link_module', '_doc_link_template', '_doc_link_url_param_generator', '_estimator_type', '_fit', '_fit_lbfgs', '_fit_stochastic', '_forward_pass', '_forward_pass_fast', '_get_default_requests', '_get_doc_link', '_get_metadata_request', '_get_param_names', '_get_tags', '_init_coef', '_initialize', '_loss_grad_lbfgs', '_more_tags', '_parameter_constraints', '_predict', '_repr_html_', '_repr_html_inner', '_repr_mimebundle_', '_score', '_score_with_function', '_unpack', '_update_no_improvement_count', '_validate_data', '_validate_input', '_validate_params', 'activation', 'alpha', 'batch_size', 'beta_1', 'beta_2', 'early_stopping', 'epsilon', 'fit', 'get_metadata_routing', 'get_params', 'hidden_layer_sizes', 'init_method', 'learning_rate', 'learning_rate_init', 'loss', 'lower_bound', 'max_fun', 'max_iter', 'mean', 'momentum', 'n_iter_no_change', 'nesterovs_momentum', 'partial_fit', 'power_t', 'predict', 'predict_log_proba', 'predict_proba', 'random_state', 'score', 'seed', 'set_params', 'set_partial_fit_request', 'set_score_request', 'shuffle', 'solver', 'std', 'tol', 'upper_bound', 'validation_fraction', 'verbose', 'warm_start']
