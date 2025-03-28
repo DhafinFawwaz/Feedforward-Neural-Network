@@ -120,8 +120,8 @@ elif args.plot_weights:
 elif args.plot_gradients:
     model_path = args.plot_gradients[0]
     layers_to_plot = args.layers_to_plot
-    plot_type = args.plot_type
-    print(f"Plotting gradients:\n  Model={model_path}\n  Layers={layers_to_plot}\n  Plot Type={plot_type}")
+    plot_size = args.plot_size
+    print(f"Plotting gradients:\n  Model={model_path}\n  Layers={layers_to_plot}\n  Plot Size={plot_size}")
 elif args.plot_loss:
     model_path = args.plot_loss[0]
     print(f"Plotting loss:\n  Model={model_path}")

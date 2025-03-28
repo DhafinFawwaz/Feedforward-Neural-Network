@@ -37,6 +37,7 @@ class NeuralNetworkVisualizerPlotly:
 
         for layer_idx in range(len(self.layers) - 1):
             for i in range(self.layers[layer_idx]):
+                print(f"Layer {layer_idx} Node {i}/{self.layers[layer_idx]}", end='\r')
                 for j in range(self.layers[layer_idx + 1]):
                     x0, y0 = node_positions[(layer_idx, i)]
                     x1, y1 = node_positions[(layer_idx + 1, j)]
