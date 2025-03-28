@@ -76,10 +76,10 @@ parser.add_argument('--layers_to_plot', type=int, nargs='+', default=[0])
 parser.add_argument('--plot_size', type=float, default=0.01)
 
 parser.add_argument('--test_size', type=float, default=0.1)
-parser.add_argument('--hidden_layer_sizes', type=int, nargs='+', default=[256, 128, 64])
+parser.add_argument('--hidden_layer_sizes', type=int, nargs='+', default=[128,64,32])
 parser.add_argument('--activation_func', nargs='+', default=["sigmoid", "sigmoid", "sigmoid", "softmax"])
-parser.add_argument('--learning_rate', type=float, default=0.05)
-parser.add_argument('--verbose', type=int, default=1)
+parser.add_argument('--learning_rate', type=float, default=0.01)
+parser.add_argument('--verbose', type=int, default=0)
 parser.add_argument('--max_epoch', type=int, default=15)
 parser.add_argument('--batch_size', type=int, default=50)
 parser.add_argument('--loss_func', type=str, default="categorical_cross_entropy")
@@ -208,12 +208,14 @@ def get_visualizer(ffnn: FFNNClassifier):
     biases = ffnn.biases_history
     weight_gradients = ffnn.weight_gradients_history
     loss_history = ffnn.loss_history
+    validation_loss_history = ffnn.validation_loss_history
     nnv = NeuralNetworkVisualizerPlotly(
         layers=layers,
         weights=weights,
         gradients=weight_gradients,
         biases=biases,
         loss_history=loss_history,
+        validation_loss_history=validation_loss_history,
     )
     return nnv
 

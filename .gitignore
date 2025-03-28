@@ -1,4 +1,5 @@
 src/dataset/*
 venv
 src/model/__pycache__
+src/model/ffnn_1.pkt
 src/__pycache__

@@ -17,12 +17,13 @@ def print_progress(s):
     prev_line_length = len(s)
 
 class NeuralNetworkVisualizerPlotly:
-    def __init__(self, layers, weights, gradients, biases, loss_history):
+    def __init__(self, layers, weights, gradients, biases, loss_history, validation_loss_history):
         self.layers = layers
         self.weights = weights
         self.gradients = gradients
         self.biases = [bias.ravel() for bias in biases]
         self.loss_history = loss_history
+        self.validation_loss_history = validation_loss_history
         self.colors = sns.color_palette("husl", len(layers))
         self.layer_names = self._generate_layer_names()
     
@@ -300,7 +301,8 @@ class NeuralNetworkVisualizerPlotly:
     
     def plot_loss(self):
         fig = go.Figure()
-        fig.add_trace(go.Scatter(y=self.loss_history, mode='lines', name='Loss'))
+        fig.add_trace(go.Scatter(y=self.loss_history, mode='lines', name='Training Loss'))
+        fig.add_trace(go.Scatter(y=self.validation_loss_history, mode='lines', name='Validation Loss'))
         
         fig.update_layout(
             title='Loss Over Time',
@@ -317,9 +319,10 @@ class NeuralNetworkVisualizerPlotly:
 # weights = [np.random.randn(35, 20), np.random.randn(20, 5), np.random.randn(5, 2)]
 # gradients = [np.random.randn(35, 20), np.random.randn(20, 5), np.random.randn(5, 2)]
 # biases = [np.random.randn(20), np.random.randn(5), np.random.randn(2)]
-# loss_history = np.exp(-0.1 * np.arange(100)) + np.random.normal(0, 0.02, 100) 
+# loss_history = np.exp(-0.1 * np.arange(100)) + np.random.normal(0, 0.02, 100)
+# validation_loss_history = np.exp(-0.1 * np.arange(100)) + np.random.normal(0, 0.02, 100)
 
-# visualizer = NeuralNetworkVisualizerPlotly(layer_sizes, weights, gradients, biases, loss_history)
+# visualizer = NeuralNetworkVisualizerPlotly(layer_sizes, weights, gradients, biases, loss_history, validation_loss_history)
 # visualizer.plot_network()
 # visualizer.plot_weight_distribution([1, 2])
 # visualizer.plot_gradient_distribution([2])

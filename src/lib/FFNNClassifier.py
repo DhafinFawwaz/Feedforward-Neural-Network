@@ -479,6 +479,7 @@ class FFNNClassifier:
             "amount_of_features": self.amount_of_features,
             "amount_of_classes": self.amount_of_classes,
             "loss_history": self.loss_history,
+            "validation_loss_history": self.validation_loss_history,
         }
         with open(filename, "wb") as f:
             pickle.dump(data, f)
@@ -511,5 +512,6 @@ class FFNNClassifier:
         model.amount_of_features = data["amount_of_features"]
         model.amount_of_classes = data["amount_of_classes"]
         model.loss_history = data["loss_history"]
+        model.validation_loss_history = data["validation_loss_history"]
 
         return model
