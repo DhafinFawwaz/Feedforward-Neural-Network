@@ -25,7 +25,7 @@ upper_bound=1
 mean=5.39294405e-05
 std=.44
 seed=69
-hidden_layer_sizes=[16,8,4]
+hidden_layer_sizes=[128,64,32]
 max_iter=15
 init_method="normal"
 learning_rate_init=0.01
@@ -72,8 +72,8 @@ X = X.astype('float32')
 y = y.astype('int')
 y = y.reshape(-1)
 
-train_until_idx = 2000
-test_until_idx = 100
+train_until_idx = int(0.8 * 70000)
+test_until_idx = int(0.2 * 70000)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 X_train = X_train[:train_until_idx]
