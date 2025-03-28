@@ -55,6 +55,16 @@ class FFNNClassifier:
 
         if len(self.hidden_layer_sizes) != len(self.activation_func) - 1:
             raise Exception("should be len(hidden_layer_sizes) == len(activation_func) - 1")
+        
+        if self.loss_func != 'mean_squared_error' and self.loss_func != 'binary_cross_entropy' and self.loss_func != 'categorical_cross_entropy':
+            raise Exception("loss_func should be either 'mean_squared_error', 'binary_cross_entropy', or 'categorical_cross_entropy'")
+        
+        if self.init_method != 'normal' and self.init_method != 'zero' and self.init_method != 'uniform':
+            raise Exception("init_method should be either 'normal', 'zero', or 'uniform'")
+        
+        for i in range(len(self.activation_func)):
+            if self.activation_func[i] != 'linear' and self.activation_func[i] != 'relu' and self.activation_func[i] != 'sigmoid' and self.activation_func[i] != 'tanh' and self.activation_func[i] != 'softmax' and self.activation_func[i] != 'softsign' and self.activation_func[i] != 'softplus':
+                raise Exception("activation_func should be either 'linear', 'relu', 'sigmoid', 'tanh', 'softmax', 'softsign', or 'softplus'")
 
     # return [ matrix, matrix, matrix ... ] where matrix is the weight adjacency matrix for each layer. length should be number of layers - 1 because its like the edges/connection between the nodes
     def _generate_initator_weights(self):
