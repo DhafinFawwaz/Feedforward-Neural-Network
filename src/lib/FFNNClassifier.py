@@ -321,7 +321,6 @@ class FFNNClassifier:
                 # if isinstance(loss_grad, np.ndarray):
                 #     loss_grad = loss_grad.mean()  # or loss_grad.item() if it's a single-element array
 
-                self.loss_history.append(loss)
                 # print("loss", loss_grad)
                 # print("loss.mean()", loss_grad.mean())
 
@@ -411,6 +410,7 @@ class FFNNClassifier:
             #### while loop ends here ##############################################
 
             current_loss = total_loss / len(self.X)
+            self.loss_history.append(current_loss)
             if self.verbose == 1:
                 print(f"Epoch {epoch+1}/{self.epoch_amount} done, loss: {current_loss}")
                 # print("Epoch %d/%d done, loss: %.8f" % (epoch+1, self.epoch_amount, current_loss))

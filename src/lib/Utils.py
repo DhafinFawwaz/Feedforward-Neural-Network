@@ -114,6 +114,7 @@ def model_comparison(sk_mlp: MLPClassifier, custom_mlp: FFNNClassifier, X_train_
         print("Biases:\n", sk_mlp.intercepts_)
         print("Prediction:\n", sk_pred)
         print("Prediction Probability:\n", sk_pred_proba)
+        print("Loss:\n", sk_mlp.loss_curve_)
         print("Accuracy:\n", sk_accuracy)
     print()
 
@@ -130,6 +131,7 @@ def model_comparison(sk_mlp: MLPClassifier, custom_mlp: FFNNClassifier, X_train_
         print("Biases:\n", custom_mlp.biases_history)
         print("Prediction:\n", custom_pred)
         print("Prediction Probability:\n", custom_pred_proba)
+        print("Loss:\n", custom_mlp.loss_history)
         print("Accuracy:\n", custom_accuracy)
     print()
 
@@ -142,6 +144,10 @@ def model_comparison(sk_mlp: MLPClassifier, custom_mlp: FFNNClassifier, X_train_
     else: print("❌ Prediction is not equal")
     if(is_arr_equal(sk_pred_proba, custom_pred_proba)): print("✅ Prediction Probability is equal")
     else: print("❌ Prediction Probability is not equal")
+    if(is_arr_equal(sk_mlp.loss_curve_, custom_mlp.loss_history)): print("✅ Loss is equal")
+    else: print("❌ Loss is not equal")
+    if(is_arr_equal(sk_accuracy, custom_accuracy)): print("✅ Accuracy is equal")
+    else: print("❌ Accuracy is not equal")
     print()
 
 def is_arr_equal(arr1, arr2):
@@ -149,6 +155,7 @@ def is_arr_equal(arr1, arr2):
     if isinstance(arr1, list) and isinstance(arr2, list) or isinstance(arr1, np.ndarray) and isinstance(arr2, np.ndarray):
         for i in range(len(arr1)):
             if not np.allclose(arr1[i], arr2[i], rtol=1e-03, atol=1e-06):
+                print(arr1[i], "!=", arr2[i])
                 return False
         return True
     else:
