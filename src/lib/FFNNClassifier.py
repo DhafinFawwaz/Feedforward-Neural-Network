@@ -6,6 +6,7 @@ import pickle
 from sklearn.calibration import expit
 from scipy.special import xlogy
 from lib.WeightInitialization import WeightInitialization
+from scipy.special import expit
 
 class FFNNClassifier:
     def __init__(self,
@@ -100,7 +101,8 @@ class FFNNClassifier:
     def _activation_function(x: Union[float, NDArray], func: str):
         if func == 'linear': return x
         elif func == 'relu': return np.maximum(0, x)
-        elif func == 'sigmoid': return 1.0/(1.0 + np.exp(-x))
+        # elif func == 'sigmoid': return 1.0/(1.0 + np.exp(-x))
+        elif func == 'sigmoid': return expit(x) # to fix overflow issue
         elif func == 'tanh': return np.tanh(x)
         elif func == 'softmax':
             exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
@@ -133,7 +135,8 @@ class FFNNClassifier:
             one_plus_abs_x = 1 + np.abs(x)
             return 1 / (one_plus_abs_x * one_plus_abs_x)
         elif func == "softplus":
-            return 1 / (1 + np.exp(-x)) # sigmoid(x)
+            # return 1 / (1 + np.exp(-x)) # sigmoid(x)
+            return expit(x) # to fix overflow issue
         raise "Activation function not supported!"
 
 
