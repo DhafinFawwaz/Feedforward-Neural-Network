@@ -6,7 +6,7 @@ class WeightInitialization:
     def __init__(
         self, 
         layer_units: List[int],
-        init_method:Literal["uniform", "normal","zero"],
+        init_method:Literal["uniform", "normal","zero","xavier_normal","xavier_uniform","he_normal","he_uniform"],
         lower_bound=5.39294405e-05,
         upper_bound = 1,
         mean = 5.39294405e-05,
@@ -48,6 +48,22 @@ class WeightInitialization:
         elif self.init_method == 'uniform':
             coef_init = np.random.uniform(self.lower_bound, self.upper_bound, (fan_in, fan_out)).astype(self.dtype)
             intercept_init = np.random.uniform(self.lower_bound, self.upper_bound, fan_out).astype(self.dtype)
+        elif self.init_method == 'xavier_uniform':
+            bound_limit = np.sqrt(6 / (fan_in + fan_out))
+            coef_init = np.random.uniform(-bound_limit, bound_limit, (fan_in, fan_out)).astype(self.dtype)
+            intercept_init = np.random.uniform(-bound_limit, bound_limit, fan_out).astype(self.dtype)
+        elif self.init_method == 'he_uniform':
+            bound_limit = np.sqrt(6 / fan_in)
+            coef_init = np.random.uniform(-bound_limit, bound_limit, (fan_in, fan_out)).astype(self.dtype)
+            intercept_init = np.random.uniform(-bound_limit, bound_limit, fan_out).astype(self.dtype)
+        elif self.init_method == 'xavier_normal':
+            deviation = np.sqrt(2 / (fan_in + fan_out))
+            intercept_init = np.random.normal(0, deviation, fan_out).astype(self.dtype)
+            coef_init = np.random.normal(0, deviation, (fan_in, fan_out)).astype(self.dtype)
+        elif self.init_method == 'he_normal':
+            deviation = np.sqrt(2 / fan_in)
+            intercept_init = np.random.normal(0, deviation, fan_out).astype(self.dtype)
+            coef_init = np.random.normal(0, deviation, (fan_in, fan_out)).astype(self.dtype)
         elif self.init_method == 'normal':
             intercept_init = np.random.normal(self.mean, self.std, fan_out).astype(self.dtype)
             coef_init = np.random.normal(self.mean, self.std, (fan_in, fan_out)).astype(self.dtype)

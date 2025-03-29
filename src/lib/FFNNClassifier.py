@@ -7,6 +7,7 @@ from sklearn.calibration import expit
 from scipy.special import xlogy
 from lib.WeightInitialization import WeightInitialization
 
+
 class FFNNClassifier:
     def __init__(self,
             hidden_layer_sizes: NDArray,
@@ -16,7 +17,7 @@ class FFNNClassifier:
             max_epoch: int = 50,
             batch_size: int = 256,
             loss_func: Literal['mean_squared_error', 'binary_cross_entropy', 'categorical_cross_entropy'] = 'categorical_cross_entropy',
-            init_method: Literal['normal', 'zero', 'uniform'] = 'zero',
+            init_method: Literal['normal', 'zero', 'uniform',"xavier_normal","xavier_uniform","he_normal","he_uniform"] = 'zero',
             lower_bound: float = 0.0,
             upper_bound: float = 1.0,
             mean: float = 0.0,
@@ -66,8 +67,8 @@ class FFNNClassifier:
         if self.loss_func != 'mean_squared_error' and self.loss_func != 'binary_cross_entropy' and self.loss_func != 'categorical_cross_entropy':
             raise Exception("loss_func should be either 'mean_squared_error', 'binary_cross_entropy', or 'categorical_cross_entropy'")
         
-        if self.init_method != 'normal' and self.init_method != 'zero' and self.init_method != 'uniform':
-            raise Exception("init_method should be either 'normal', 'zero', or 'uniform'")
+        if self.init_method not in ['normal', 'zero', 'uniform',"xavier_normal","xavier_uniform","he_normal","he_uniform"]:
+            raise Exception("init_method should be either 'normal', 'zero', 'uniform', 'xavier_[normal/uniform]', or 'he_[normal/uniform]'")
         
         for i in range(len(self.activation_func)):
             if self.activation_func[i] != 'linear' and self.activation_func[i] != 'relu' and self.activation_func[i] != 'sigmoid' and self.activation_func[i] != 'tanh' and self.activation_func[i] != 'softmax' and self.activation_func[i] != 'softsign' and self.activation_func[i] != 'softplus':
