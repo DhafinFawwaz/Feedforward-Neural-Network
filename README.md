@@ -15,7 +15,7 @@ This project is an implementation of a feedforward neural network from scratch. 
 
 You can save the trained model in the `model` folder and load it later to predict new data. You can also calculate the accuracy of the prediction. You can also store the dataset in csv format in the `dataset` folder. The lib folder contains the implementation of the feedforward neural network.
 - `FFNNClassidier.py` is the implementation of the feedforward neural network from scratch
-- `MLPLib.py` is sklearn's MLPClassifier with overridden initial weights
+- `MLPLib.py` is sklearn's MLPClassifier with overridden initial weights and L1 regularization. The overriden functions will either call the parent function then do the rest of the process or overridden completely because its impossible without modifying the center part of the function.
 - `NeuralNetworkVisualizer.py` is a class to visualize the neural network
 - `Utils.py` contains utility functions
 
