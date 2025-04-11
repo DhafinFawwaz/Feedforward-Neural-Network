@@ -4,11 +4,11 @@
 | Name | NIM | Description |
 | --- | --- | --- |
 | 13522014 | Raden Rafly Hanggaraksa Budiarto | Metode inisialisasi bobot, Perbandingan performa model dengan library, Menyusun laporan |
-| 13522084 | Dhafin Fawwaz Ikramullah | Forward propagation, Backward propagation, Debugging dan emastikan output sama dengan MLPClassifier sklearn, Menyusun laporan |
+| 13522084 | Dhafin Fawwaz Ikramullah | Forward propagation, Backward propagation, Debugging dan memastikan output sama dengan MLPClassifier sklearn, Membuat runner main dengan berbagai argumentnya, Menyusun laporan |
 | 13522092 | Sa’ad Abdul Hakim | Visualisasi, Menyusun laporan |
 
 ## Description
-This project is an implementation of a feedforward neural network from scratch. It has same result with sklearn's MLPClassifier and might have more detailed result because of using float64 instead of float32. 
+This project is an implementation of a feedforward neural network from scratch. It has same result with sklearn's MLPClassifier and might have more detailed result because of using float64 instead of float32. If you ever find that the result is different with the library, please check if the library converges. The implementation of this classifier is simple keep going until last iteration. Unlike the library one which will stops once it reaches convergence. You can try lowering the amount of epoch so that the library one won't converges. 
 - `main.py` is the main file to run the project
 - `test3.py` is the file to test the implementation with the MNIST dataset
 - `test4.py` is the file to test the implementation with manually created dataset with smaller size
