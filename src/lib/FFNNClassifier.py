@@ -136,7 +136,6 @@ class FFNNClassifier:
             one_plus_abs_x = 1 + np.abs(x)
             return 1 / (one_plus_abs_x * one_plus_abs_x)
         elif func == "softplus":
-            # return 1 / (1 + np.exp(-x)) # sigmoid(x)
             return expit(x) # to fix overflow issue
         raise "Activation function not supported!"
 
@@ -337,12 +336,6 @@ class FFNNClassifier:
                     delta = np.matmul(jacobians, loss_grad_col)  # (batch_size, n, 1)
                     delta = np.squeeze(delta, axis=-1) # (batch_size, n)
                 else:
-                    # loss_grad = FFNNClassifier._loss_function_derived(
-                    #     y_act=y_act,
-                    #     y_pred=y_pred,
-                    #     func=self.loss_func
-                    # )
-                    # delta = loss_grad * FFNNClassifier._activation_derived_function(nodes[-1], self.activation_func[-1])
                     delta = (nodes_active[-1] - self.y[current_dataset_idx:until_idx]).astype("float32")
 
                 weight_gradiens[network_depth-2] = nodes_active[k-1].T @ delta
@@ -356,7 +349,17 @@ class FFNNClassifier:
                 for k in range(network_depth-2, 0, -1): # from the last hidden layer (not including the output layer)
                     w = self.weights_history[k]
 
-                    delta = np.dot(delta, w.T) * FFNNClassifier._activation_derived_function(nodes[k], self.activation_func[k-1])
+                    # delta = np.dot(delta, w.T) * FFNNClassifier._activation_derived_function(nodes[k], self.activation_func[k-1])
+
+                    # Highly doubt we need to handle softmax here but just in case
+                    activation_deriv = FFNNClassifier._activation_derived_function(nodes[k], self.activation_func[k-1])
+                    if self.activation_func[k-1] == "softmax":
+                        delta = np.dot(delta, w.T)
+                        delta = np.einsum('bij,bj->bi', activation_deriv, delta)
+                    else:
+                        delta = np.dot(delta, w.T) * activation_deriv
+
+
                     weight_gradiens[k-1] = nodes_active[k-1].T @ delta
                     weight_gradiens[k-1] += self.l2 * self.weights_history[k-1] # L2 regularization
                     weight_gradiens[k-1] += self.l1 * np.sign(self.weights_history[k-1]) # L1 regularization
