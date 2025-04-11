@@ -24,6 +24,7 @@ class MLPLIB(MLPClassifier):
         verbose: bool = True,
         alpha: float = 0,
         alpha_l1: float = 0,
+        dtype: type = "float32",
         **kwargs
     ):
         
@@ -46,6 +47,7 @@ class MLPLIB(MLPClassifier):
         self.std = std
         self.seed = seed
         self.alpha_l1 = alpha_l1
+        self.dtype = dtype
         # self.alpha_l2 is self.alpha
 
     # Override to set the seed
@@ -74,6 +76,22 @@ class MLPLIB(MLPClassifier):
         elif self.init_method == 'normal':
             intercept_init = np.random.normal(self.mean, self.std, fan_out).astype(dtype)
             coef_init = np.random.normal(self.mean, self.std, (fan_in, fan_out)).astype(dtype)
+        elif self.init_method == 'xavier_uniform':
+            bound_limit = np.sqrt(6 / (fan_in + fan_out))
+            coef_init = np.random.uniform(-bound_limit, bound_limit, (fan_in, fan_out)).astype(self.dtype)
+            intercept_init = np.random.uniform(-bound_limit, bound_limit, fan_out).astype(self.dtype)
+        elif self.init_method == 'he_uniform':
+            bound_limit = np.sqrt(6 / fan_in)
+            coef_init = np.random.uniform(-bound_limit, bound_limit, (fan_in, fan_out)).astype(self.dtype)
+            intercept_init = np.random.uniform(-bound_limit, bound_limit, fan_out).astype(self.dtype)
+        elif self.init_method == 'xavier_normal':
+            deviation = np.sqrt(2 / (fan_in + fan_out))
+            intercept_init = np.random.normal(0, deviation, fan_out).astype(self.dtype)
+            coef_init = np.random.normal(0, deviation, (fan_in, fan_out)).astype(self.dtype)
+        elif self.init_method == 'he_normal':
+            deviation = np.sqrt(2 / fan_in)
+            intercept_init = np.random.normal(0, deviation, fan_out).astype(self.dtype)
+            coef_init = np.random.normal(0, deviation, (fan_in, fan_out)).astype(self.dtype)
         else:
             raise ValueError(f"Unknown init_method: {self.init_method}")
         # print("MLPLib coef_init")
